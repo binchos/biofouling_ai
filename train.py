@@ -12,6 +12,11 @@ from dataio import FigshareDataset, LiaciDataset
 from model import MultiHeadNet
 from losses import MultiTaskLoss
 
+
+tfm_train = T.Compose([ T.ToTensor() ])
+tfm_val   = T.Compose([ T.ToTensor() ])
+
+
 def set_seed(seed=42):
     random.seed(seed); np.random.seed(seed); torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
@@ -119,16 +124,17 @@ def main():
 
     if args.mode in ["multitask", "sequential-A"]:
         fig_train = FigshareDataset(split="train", use_bin=args.use_bin, transform=tfm_train)
-        fig_val   = FigshareDataset(split="val",   use_bin=args.use_bin, transform=tfm_val)
-        dl_fig_train = DataLoader(fig_train, batch_size=args.batch, shuffle=True, num_workers=args.num_workers, pin_memory=True)
-        dl_fig_val   = DataLoader(fig_val,   batch_size=args.batch, shuffle=False, num_workers=args.num_workers, pin_memory=True)
+        fig_val = FigshareDataset(split="val", use_bin=args.use_bin, transform=tfm_val)
+        dl_fig_train = DataLoader(fig_train, batch_size=16, shuffle=True, num_workers=args.num_workers, pin_memory=True)
+        dl_fig_val = DataLoader(fig_val, batch_size=16, shuffle=False, num_workers=args.num_workers, pin_memory=True)
 
     if args.mode in ["multitask", "sequential-B"]:
-        liaci_train = LiaciDataset(split="train", transform=tfm_train)
-        liaci_val   = LiaciDataset(split="val",   transform=tfm_val)
-        dl_liaci_train = DataLoader(liaci_train, batch_size=args.batch//2 if args.mode=="multitask" else args.batch,
+        #  LIACi 입력 크기 = (H=736, W=1280)
+        liaci_train = LiaciDataset(split="train", transform=tfm_train, size=(736, 1280))
+        liaci_val = LiaciDataset(split="val", transform=tfm_val, size=(736, 1280))
+        dl_liaci_train = DataLoader(liaci_train, batch_size=4 if args.mode == "multitask" else 4,
                                     shuffle=True, num_workers=args.num_workers, pin_memory=True)
-        dl_liaci_val   = DataLoader(liaci_val,   batch_size=args.batch, shuffle=False, num_workers=args.num_workers, pin_memory=True)
+        dl_liaci_val = DataLoader(liaci_val, batch_size=4, shuffle=False, num_workers=args.num_workers, pin_memory=True)
 
     # Model / Loss / Optim
     model = MultiHeadNet(backbone_name="convnext_tiny", n_cls=(2 if args.use_bin else 3)).to(device)

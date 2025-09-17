@@ -6,7 +6,8 @@ import torch
 from torch.utils.data import Dataset
 from PIL import Image
 import numpy as np
-
+from torchvision.transforms import functional as TF
+from torchvision.transforms import InterpolationMode
 
 
 def _find_first_with_stem(folder: Path, stem: str, exts=(".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff")) -> Optional[Path]:
@@ -15,6 +16,22 @@ def _find_first_with_stem(folder: Path, stem: str, exts=(".jpg", ".jpeg", ".png"
         if p.exists():
             return p
     return None
+def letterbox(im: Image.Image, size_hw, fill=0, interp=InterpolationMode.BILINEAR):
+    H,W = size_hw
+    w0, h0 = im.size
+    scale = min(W / w0, H / h0)
+    nw, nh = int(round(w0 * scale)), int(round(h0 * scale))
+    im_r = TF.resize(im, [nh, nw], interpolation=interp)
+    top = (H - nh) // 2
+    left = (W - nw) // 2
+    canvas = Image.new(im_r.mode, (W, H), (fill, fill, fill) if im_r.mode == "RGB" else fill)
+    canvas.paste(im_r, (left, top))
+    return canvas
+
+
+
+
+
 
 class FigshareDataset(Dataset):
     """
@@ -39,8 +56,11 @@ class FigshareDataset(Dataset):
         row = self.meta.iloc[idx]
         img_path = self.img_dir / row["id"]
         img = Image.open(img_path).convert("RGB")
+        img = TF.resize(img, [512, 512], interpolation=InterpolationMode.BILINEAR)
         if self.transform:
             img = self.transform(img)
+        else:
+            img=TF.to_tensor(img)
 
         label = int(row["label_bin"] if self.use_bin else row["label_cls"])
         return {"image": img, "cls": torch.tensor(label, dtype=torch.long)}
@@ -53,12 +73,13 @@ class LiaciDataset(Dataset):
       masks_raw/<id>_M.png
       splits.csv: id,split
     """
-    def __init__(self, root="data/liaci", split="train", transform=None, strict=True):
+    def __init__(self, root="data/liaci", split="train", transform=None, strict=True, size: Optional[Tuple[int,int]]=None):
         self.root = Path(root)
         self.meta = pd.read_csv(self.root / "splits.csv")
         self.meta = self.meta[self.meta["split"] == split].reset_index(drop=True)
         self.transform = transform
         self.strict = strict
+        self.size = size
 
         self.img_dir = self.root / "images"
         self.masks_dir = self.root / "masks"
@@ -85,14 +106,23 @@ class LiaciDataset(Dataset):
             raise FileNotFoundError(f"Mask not found: {s_path} or {m_path}")
 
         img = Image.open(img_path).convert("RGB")
-        S = np.array(Image.open(s_path).convert("L")) > 127
-        M = np.array(Image.open(m_path).convert("L")) > 127
+        S_pil = Image.open(s_path).convert("L")
+        M_pil = Image.open(m_path).convert("L")
 
+        if self.size is not None:
+            H, W = self.size
+            img = letterbox(img, (H, W), fill=0, interp=InterpolationMode.BILINEAR)
+            S_pil = letterbox(S_pil, (H, W), fill=0, interp=InterpolationMode.NEAREST)
+            M_pil = letterbox(M_pil, (H, W), fill=0, interp=InterpolationMode.NEAREST)
+
+            # Tensor 변환
         if self.transform:
             img = self.transform(img)
+        else:
+            img = TF.to_tensor(img)
 
-        S = torch.tensor(S, dtype=torch.float32).unsqueeze(0)  # 1xHxW
-        M = torch.tensor(M, dtype=torch.float32).unsqueeze(0)
+        S = torch.tensor((np.array(S_pil) > 127).astype(np.float32)).unsqueeze(0)
+        M = torch.tensor((np.array(M_pil) > 127).astype(np.float32)).unsqueeze(0)
 
         # M ⊆ S 보장 (전처리에서 이미 했지만 안전망)
         M = (M * (S > 0.5)).float()
