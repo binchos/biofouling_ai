@@ -134,8 +134,15 @@ def main():
         dl_liaci_val = DataLoader(liaci_val, batch_size=4, shuffle=False,
                                   num_workers=args.num_workers, pin_memory=True)
     # Model / Loss / Optim
+    # Model / Loss / Optim
     model = MultiHeadNet(backbone_name="convnext_tiny", n_cls=(2 if args.use_bin else 3)).to(device)
-    criterion = MultiTaskLoss(alpha=args.alpha, beta=(0.0 if args.mode=="sequential-B" else args.beta))
+
+
+    if torch.cuda.device_count() > 1:
+        print(f"Using {torch.cuda.device_count()} GPUs!")
+        model = torch.nn.DataParallel(model)
+
+    criterion = MultiTaskLoss(alpha=args.alpha, beta=(0.0 if args.mode == "sequential-B" else args.beta))
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
 
     best_liaci = -1.0
@@ -184,9 +191,11 @@ def main():
                 best_liaci = liaci_metrics["dice_mean"]
                 Path(args.save).parent.mkdir(parents=True, exist_ok=True)
                 torch.save({"epoch": epoch,
-                            "state_dict": model.state_dict(),
+                            "state_dict": model.module.state_dict() if isinstance(model,
+                                                                                  torch.nn.DataParallel) else model.state_dict(),
                             "best_liaci": best_liaci,
                             "args": vars(args)}, args.save)
+
                 print(f"  -> saved best to {args.save} (dice_mean={best_liaci:.4f})")
 
 if __name__ == "__main__":
