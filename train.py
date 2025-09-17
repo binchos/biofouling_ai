@@ -110,32 +110,29 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     # Transform (두 도메인 동일 해상도로 맞춤)
-    tfm_train = T.Compose([
-        T.Resize((args.img_size, args.img_size)),
-        T.ToTensor(),
-    ])
-    tfm_val = T.Compose([
-        T.Resize((args.img_size, args.img_size)),
-        T.ToTensor(),
-    ])
-
+    tfm_fig_train = T.Compose([T.ToTensor()])
+    tfm_fig_val = T.Compose([T.ToTensor()])
+    tfm_liaci_train = T.Compose([T.ToTensor()])
+    tfm_liaci_val = T.Compose([T.ToTensor()])
     # Datasets & Loaders
     dl_fig_train = dl_fig_val = dl_liaci_train = dl_liaci_val = None
 
     if args.mode in ["multitask", "sequential-A"]:
-        fig_train = FigshareDataset(split="train", use_bin=args.use_bin, transform=tfm_train)
-        fig_val = FigshareDataset(split="val", use_bin=args.use_bin, transform=tfm_val)
-        dl_fig_train = DataLoader(fig_train, batch_size=16, shuffle=True, num_workers=args.num_workers, pin_memory=True)
-        dl_fig_val = DataLoader(fig_val, batch_size=16, shuffle=False, num_workers=args.num_workers, pin_memory=True)
+        fig_train = FigshareDataset(split="train", use_bin=args.use_bin, transform=tfm_fig_train)
+        fig_val = FigshareDataset(split="val", use_bin=args.use_bin, transform=tfm_fig_val)
+        dl_fig_train = DataLoader(fig_train, batch_size=16, shuffle=True,
+                                  num_workers=args.num_workers, pin_memory=True)
+        dl_fig_val = DataLoader(fig_val, batch_size=16, shuffle=False,
+                                num_workers=args.num_workers, pin_memory=True)
 
     if args.mode in ["multitask", "sequential-B"]:
-        #  LIACi 입력 크기 = (H=736, W=1280)
-        liaci_train = LiaciDataset(split="train", transform=tfm_train, size=(736, 1280))
-        liaci_val = LiaciDataset(split="val", transform=tfm_val, size=(736, 1280))
-        dl_liaci_train = DataLoader(liaci_train, batch_size=4 if args.mode == "multitask" else 4,
-                                    shuffle=True, num_workers=args.num_workers, pin_memory=True)
-        dl_liaci_val = DataLoader(liaci_val, batch_size=4, shuffle=False, num_workers=args.num_workers, pin_memory=True)
-
+        # LIACi 입력 크기 = (H=736, W=1280) → 이미지/마스크 모두 letterbox로 맞춤
+        liaci_train = LiaciDataset(split="train", transform=tfm_liaci_train, size=(736, 1280))
+        liaci_val = LiaciDataset(split="val", transform=tfm_liaci_val, size=(736, 1280))
+        dl_liaci_train = DataLoader(liaci_train, batch_size=4, shuffle=True,
+                                    num_workers=args.num_workers, pin_memory=True)
+        dl_liaci_val = DataLoader(liaci_val, batch_size=4, shuffle=False,
+                                  num_workers=args.num_workers, pin_memory=True)
     # Model / Loss / Optim
     model = MultiHeadNet(backbone_name="convnext_tiny", n_cls=(2 if args.use_bin else 3)).to(device)
     criterion = MultiTaskLoss(alpha=args.alpha, beta=(0.0 if args.mode=="sequential-B" else args.beta))
