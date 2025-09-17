@@ -1,0 +1,45 @@
+# losses.py
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+def dice_loss_from_logits(logits: torch.Tensor, target: torch.Tensor, eps=1e-6):
+    """
+    logits: Bx1xHxW, target: Bx1xHxW in {0,1}
+    """
+    prob = torch.sigmoid(logits)
+    inter = 2.0 * (prob * target).sum()
+    den = prob.sum() + target.sum() + eps
+    return 1.0 - inter / den
+
+class MultiTaskLoss(nn.Module):
+    """
+    loss = (BCE+Dice for S) + alpha*(BCE+Dice for M) + beta*CE(cls)
+    배치에 해당 라벨이 없으면 그 항은 0으로 스킵.
+    """
+    def __init__(self, alpha=1.0, beta=0.5):
+        super().__init__()
+        self.alpha = float(alpha)
+        self.beta = float(beta)
+        self.bce = nn.BCEWithLogitsLoss()
+        self.ce = nn.CrossEntropyLoss()
+
+    def forward(self, outputs: dict, batch: dict):
+        loss = 0.0
+
+        # Seg - Structure
+        if "S" in outputs and ("S" in batch) and batch["S"] is not None:
+            loss_S = self.bce(outputs["S"], batch["S"]) + dice_loss_from_logits(outputs["S"], batch["S"])
+            loss = loss + loss_S
+
+        # Seg - Marine
+        if "M" in outputs and ("M" in batch) and batch["M"] is not None:
+            loss_M = self.bce(outputs["M"], batch["M"]) + dice_loss_from_logits(outputs["M"], batch["M"])
+            loss = loss + self.alpha * loss_M
+
+        # Classification
+        if ("cls" in outputs) and ("cls" in batch) and (batch["cls"] is not None):
+            loss_C = self.ce(outputs["cls"], batch["cls"])
+            loss = loss + self.beta * loss_C
+
+        return loss

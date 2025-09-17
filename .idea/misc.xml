@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Black">
+    <option name="sdkName" value="C:\Users\chsobn0710\AppData\Local\anaconda3" />
+  </component>
+  <component name="MaterialThemeProjectNewConfig">
+    <option name="metadata">
+      <MTProjectMetadataState>
+        <option name="userId" value="7b21faa8:195948590c6:-7ffd" />
+      </MTProjectMetadataState>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="Remote Python 3.10.12 (sftp://chess@61.245.248.184:22/home/shared_project/venv/bin/python)" project-jdk-type="Python SDK" />
+</project>
