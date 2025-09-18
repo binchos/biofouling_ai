@@ -1,4 +1,6 @@
 # train.py
+
+
 import argparse
 from itertools import cycle
 from pathlib import Path
@@ -11,6 +13,7 @@ from torchvision import transforms as T
 from dataio import FigshareDataset, LiaciDataset
 from model import MultiHeadNet
 from losses import MultiTaskLoss
+
 
 
 tfm_train = T.Compose([
@@ -48,6 +51,10 @@ def dice_from_logits(logits: torch.Tensor, target: torch.Tensor, thr=0.5, eps=1e
     den = pred.sum() + target.sum() + eps
     return (inter / den).item()
 
+def collate_skip_none(batch):
+    batch = [b for b in batch if b is not None]
+    return torch.utils.data.default_collate(batch) if len(batch) > 0 else None
+
 
 # ------- Train loops -------
 def train_interleaved_epoch(dl_fig, dl_liaci, model, criterion, optim, device):
@@ -55,6 +62,8 @@ def train_interleaved_epoch(dl_fig, dl_liaci, model, criterion, optim, device):
     total_loss, steps = 0.0, 0
     for b_fig, b_seg in zip(dl_fig, cycle(dl_liaci)):
         for batch in (b_fig, b_seg):  # Figshare → LIACI 교대
+            if batch is None:
+                continue
             imgs = batch["image"].to(device)
             # 항상 두 헤드 forward (공유 백본)
             out = model(imgs)
@@ -159,9 +168,9 @@ def main():
         liaci_train = LiaciDataset(split="train", transform=tfm_train, size=(736, 1280))
         liaci_val = LiaciDataset(split="val", transform=tfm_val, size=(736, 1280))
         dl_liaci_train = DataLoader(liaci_train, batch_size=4 if args.mode == "multitask" else 4,
-                                    shuffle=True, num_workers=args.num_workers, pin_memory=True)
+                                    shuffle=True, num_workers=args.num_workers, pin_memory=True,collate_fn=collate_skip_none)
         dl_liaci_val = DataLoader(liaci_val, batch_size=4, shuffle=False,
-                                  num_workers=args.num_workers, pin_memory=True)
+                                  num_workers=args.num_workers, pin_memory=True,collate_fn=collate_skip_none)
 
     # Model / Loss / Optim
     model = MultiHeadNet(backbone_name="convnext_tiny",
@@ -205,6 +214,8 @@ def main():
             model.train()
             total, steps = 0.0, 0
             for batch in dl_liaci_train:
+                if batch is None:
+                    continue
                 imgs = batch["image"].to(device)
                 out = model(imgs)
                 batch["S"] = batch["S"].to(device)

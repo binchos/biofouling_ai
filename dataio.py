@@ -124,7 +124,9 @@ class LiaciDataset(Dataset):
         S = torch.tensor((np.array(S_pil) > 127).astype(np.float32)).unsqueeze(0)
         M = torch.tensor((np.array(M_pil) > 127).astype(np.float32)).unsqueeze(0)
 
-        # M ⊆ S 보장 (전처리에서 이미 했지만 안전망)
+        # M ⊆ S 보장 (전처리에서 이미  했지만 안전망)
         M = (M * (S > 0.5)).float()
+        if (M == 1).sum() < 100:
+            return None
 
         return {"image": img, "S": S, "M": M}
