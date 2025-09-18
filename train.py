@@ -144,12 +144,10 @@ def main():
 
     # Transform (두 도메인 동일 해상도로 맞춤)
     tfm_train = T.Compose([
-        T.Resize((args.img_size, args.img_size)),
-        T.ToTensor(),
+        T.ToTensor()
     ])
     tfm_val = T.Compose([
-        T.Resize((args.img_size, args.img_size)),
-        T.ToTensor(),
+        T.ToTensor()
     ])
 
     # Datasets & Loaders
@@ -175,7 +173,9 @@ def main():
     # Model / Loss / Optim
     model = MultiHeadNet(backbone_name="convnext_tiny",
                          n_cls=(2 if args.use_bin else 3)).to(device)
-
+    if torch.cuda.device_count() > 1:
+        print(f"Using {torch.cuda.device_count()} GPUs!")
+        model = torch.nn.DataParallel(model)
     if args.use_bin:
         total = 7822 + 2441
         w0 = total / 7822
