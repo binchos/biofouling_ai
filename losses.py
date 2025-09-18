@@ -24,7 +24,10 @@ class MultiTaskLoss(nn.Module):
         self.alpha = float(alpha)
         self.beta = float(beta)
         self.bce = nn.BCEWithLogitsLoss()
-        self.ce = nn.CrossEntropyLoss(weight=class_weight.to("cuda"))
+        if class_weight is not None:
+            self.ce = nn.CrossEntropyLoss(weight=class_weight.to("cuda"))
+        else:
+            self.ce = nn.CrossEntropyLoss()
 
     def forward(self, outputs: dict, batch: dict):
         loss = 0.0
