@@ -34,15 +34,17 @@ class MultiTaskLoss(nn.Module):
 
         # Seg - Structure
         if "S" in outputs and ("S" in batch) and batch["S"] is not None:
-            loss_S = self.bce(outputs["S"], batch["S"]) + dice_loss_from_logits(outputs["S"], batch["S"])
+            # 출력 크기를 GT와 일치시킴
+            pred_S = F.interpolate(outputs["S"], size=batch["S"].shape[2:], mode="bilinear", align_corners=False)
+            loss_S = self.bce(pred_S, batch["S"]) + dice_loss_from_logits(pred_S, batch["S"])
             loss = loss + loss_S
 
         # Seg - Marine
         if "M" in outputs and ("M" in batch) and batch["M"] is not None:
             if batch["M"].sum() > 10:
-                loss_M = self.bce(outputs["M"], batch["M"]) + dice_loss_from_logits(outputs["M"], batch["M"])
+                pred_M = F.interpolate(outputs["M"], size=batch["M"].shape[2:], mode="bilinear", align_corners=False)
+                loss_M = self.bce(pred_M, batch["M"]) + dice_loss_from_logits(pred_M, batch["M"])
                 loss = loss + self.alpha * loss_M
-
         # Classification
         if ("cls" in outputs) and ("cls" in batch) and (batch["cls"] is not None):
             loss_C = self.ce(outputs["cls"], batch["cls"])
