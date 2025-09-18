@@ -13,30 +13,41 @@ from model import MultiHeadNet
 from losses import MultiTaskLoss
 
 
-tfm_train = T.Compose([ T.ToTensor() ])
-tfm_val   = T.Compose([ T.ToTensor() ])
+tfm_train = T.Compose([
+    T.ToTensor()
+])
+tfm_val = T.Compose([
+    T.ToTensor()
+])
 
 
 def set_seed(seed=42):
-    random.seed(seed); np.random.seed(seed); torch.manual_seed(seed)
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.benchmark = True
+
 
 # ------- Metrics -------
 @torch.no_grad()
 def accuracy_top1(logits: torch.Tensor, target: torch.Tensor):
-    if logits is None or target is None: return None
+    if logits is None or target is None:
+        return None
     pred = logits.argmax(dim=1)
     return (pred == target).float().mean().item()
 
+
 @torch.no_grad()
 def dice_from_logits(logits: torch.Tensor, target: torch.Tensor, thr=0.5, eps=1e-6):
-    if logits is None or target is None: return None
+    if logits is None or target is None:
+        return None
     prob = torch.sigmoid(logits)
     pred = (prob > thr).float()
     inter = 2.0 * (pred * target).sum()
     den = pred.sum() + target.sum() + eps
     return (inter / den).item()
+
 
 # ------- Train loops -------
 def train_interleaved_epoch(dl_fig, dl_liaci, model, criterion, optim, device):
@@ -45,25 +56,25 @@ def train_interleaved_epoch(dl_fig, dl_liaci, model, criterion, optim, device):
     for b_fig, b_seg in zip(dl_fig, cycle(dl_liaci)):
         for batch in (b_fig, b_seg):  # Figshare → LIACI 교대
             imgs = batch["image"].to(device)
-
             # 항상 두 헤드 forward (공유 백본)
             out = model(imgs)
-
             # 사용할 라벨만 디바이스로
             for k in ("S", "M", "cls"):
                 if k in batch and batch[k] is not None:
                     batch[k] = batch[k].to(device)
-
             loss = criterion(out, batch)
-            optim.zero_grad(); loss.backward(); optim.step()
-
-            total_loss += loss.item(); steps += 1
-
+            optim.zero_grad()
+            loss.backward()
+            optim.step()
+            total_loss += loss.item()
+            steps += 1
     return total_loss / max(1, steps)
+
 
 @torch.no_grad()
 def eval_figshare(dl, model, device):
-    if dl is None: return None
+    if dl is None:
+        return None
     model.eval()
     accs, cnt = 0.0, 0
     for batch in dl:
@@ -72,12 +83,15 @@ def eval_figshare(dl, model, device):
         if "cls" in batch:
             acc = accuracy_top1(out["cls"].cpu(), batch["cls"])
             if acc is not None:
-                accs += acc; cnt += 1
+                accs += acc
+                cnt += 1
     return (accs / cnt) if cnt > 0 else None
+
 
 @torch.no_grad()
 def eval_liaci(dl, model, device):
-    if dl is None: return None
+    if dl is None:
+        return None
     model.eval()
     dices_S, dices_M, cnt = 0.0, 0.0, 0
     for batch in dl:
@@ -86,9 +100,17 @@ def eval_liaci(dl, model, device):
         dS = dice_from_logits(out["S"].cpu(), batch["S"])
         dM = dice_from_logits(out["M"].cpu(), batch["M"])
         if dS is not None and dM is not None:
-            dices_S += dS; dices_M += dM; cnt += 1
-    if cnt == 0: return None
-    return {"dice_S": dices_S/cnt, "dice_M": dices_M/cnt, "dice_mean": (dices_S+dices_M)/(2*cnt)}
+            dices_S += dS
+            dices_M += dM
+            cnt += 1
+    if cnt == 0:
+        return None
+    return {
+        "dice_S": dices_S / cnt,
+        "dice_M": dices_M / cnt,
+        "dice_mean": (dices_S + dices_M) / (2 * cnt)
+    }
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -102,7 +124,9 @@ def main():
     ap.add_argument("--num_workers", type=int, default=4)
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--save", type=str, default="exp/checkpoints/best_liaci.pt")
-    ap.add_argument("--mode", type=str, choices=["multitask", "sequential-A", "sequential-B"], default="multitask",
+    ap.add_argument("--mode", type=str,
+                    choices=["multitask", "sequential-A", "sequential-B"],
+                    default="multitask",
                     help="multitask: Figshare+LIACI 교대 / sequential-A: Figshare만 / sequential-B: LIACI만")
     args = ap.parse_args()
 
@@ -110,48 +134,60 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     # Transform (두 도메인 동일 해상도로 맞춤)
-    tfm_fig_train = T.Compose([T.ToTensor()])
-    tfm_fig_val = T.Compose([T.ToTensor()])
-    tfm_liaci_train = T.Compose([T.ToTensor()])
-    tfm_liaci_val = T.Compose([T.ToTensor()])
+    tfm_train = T.Compose([
+        T.Resize((args.img_size, args.img_size)),
+        T.ToTensor(),
+    ])
+    tfm_val = T.Compose([
+        T.Resize((args.img_size, args.img_size)),
+        T.ToTensor(),
+    ])
+
     # Datasets & Loaders
     dl_fig_train = dl_fig_val = dl_liaci_train = dl_liaci_val = None
 
     if args.mode in ["multitask", "sequential-A"]:
-        fig_train = FigshareDataset(split="train", use_bin=args.use_bin, transform=tfm_fig_train)
-        fig_val = FigshareDataset(split="val", use_bin=args.use_bin, transform=tfm_fig_val)
+        fig_train = FigshareDataset(split="train", use_bin=args.use_bin, transform=tfm_train)
+        fig_val = FigshareDataset(split="val", use_bin=args.use_bin, transform=tfm_val)
         dl_fig_train = DataLoader(fig_train, batch_size=16, shuffle=True,
                                   num_workers=args.num_workers, pin_memory=True)
         dl_fig_val = DataLoader(fig_val, batch_size=16, shuffle=False,
                                 num_workers=args.num_workers, pin_memory=True)
 
     if args.mode in ["multitask", "sequential-B"]:
-        # LIACi 입력 크기 = (H=736, W=1280) → 이미지/마스크 모두 letterbox로 맞춤
-        liaci_train = LiaciDataset(split="train", transform=tfm_liaci_train, size=(736, 1280))
-        liaci_val = LiaciDataset(split="val", transform=tfm_liaci_val, size=(736, 1280))
-        dl_liaci_train = DataLoader(liaci_train, batch_size=4, shuffle=True,
-                                    num_workers=args.num_workers, pin_memory=True)
+        # LIACi 입력 크기 = (H=736, W=1280)
+        liaci_train = LiaciDataset(split="train", transform=tfm_train, size=(736, 1280))
+        liaci_val = LiaciDataset(split="val", transform=tfm_val, size=(736, 1280))
+        dl_liaci_train = DataLoader(liaci_train, batch_size=4 if args.mode == "multitask" else 4,
+                                    shuffle=True, num_workers=args.num_workers, pin_memory=True)
         dl_liaci_val = DataLoader(liaci_val, batch_size=4, shuffle=False,
                                   num_workers=args.num_workers, pin_memory=True)
+
     # Model / Loss / Optim
-    # Model / Loss / Optim
-    model = MultiHeadNet(backbone_name="convnext_tiny", n_cls=(2 if args.use_bin else 3)).to(device)
+    model = MultiHeadNet(backbone_name="convnext_tiny",
+                         n_cls=(2 if args.use_bin else 3)).to(device)
 
+    if args.use_bin:
+        total = 7822 + 2441
+        w0 = total / 7822
+        w1 = total / 2441
+        weights_bin = torch.tensor([w0, w1], dtype=torch.float32)
+        weights_bin = weights_bin / weights_bin.sum()
+        weights_bin = weights_bin.to(device)
+    else:
+        weights_bin = None
 
-    if torch.cuda.device_count() > 1:
-        print(f"Using {torch.cuda.device_count()} GPUs!")
-        model = torch.nn.DataParallel(model)
-
-    criterion = MultiTaskLoss(alpha=args.alpha, beta=(0.0 if args.mode == "sequential-B" else args.beta))
+    criterion = MultiTaskLoss(alpha=args.alpha,
+                              beta=(0.0 if args.mode == "sequential-B" else args.beta),
+                              class_weight=weights_bin)
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
 
     best_liaci = -1.0
-
-    for epoch in range(1, args.epochs+1):
+    for epoch in range(1, args.epochs + 1):
         if args.mode == "multitask":
-            train_loss = train_interleaved_epoch(dl_fig_train, dl_liaci_train, model, criterion, optimizer, device)
-        elif args.mode == "sequential-A":
-            # Figshare만
+            train_loss = train_interleaved_epoch(dl_fig_train, dl_liaci_train,
+                                                 model, criterion, optimizer, device)
+        elif args.mode == "sequential-A":  # Figshare만
             model.train()
             total, steps = 0.0, 0
             for batch in dl_fig_train:
@@ -159,11 +195,13 @@ def main():
                 out = model(imgs)
                 batch["cls"] = batch["cls"].to(device)
                 loss = criterion(out, batch)
-                optimizer.zero_grad(); loss.backward(); optimizer.step()
-                total += loss.item(); steps += 1
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+                total += loss.item()
+                steps += 1
             train_loss = total / max(1, steps)
-        else:
-            # LIACI만
+        else:  # LIACI만
             model.train()
             total, steps = 0.0, 0
             for batch in dl_liaci_train:
@@ -172,8 +210,11 @@ def main():
                 batch["S"] = batch["S"].to(device)
                 batch["M"] = batch["M"].to(device)
                 loss = criterion(out, batch)
-                optimizer.zero_grad(); loss.backward(); optimizer.step()
-                total += loss.item(); steps += 1
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+                total += loss.item()
+                steps += 1
             train_loss = total / max(1, steps)
 
         # Validation
@@ -181,22 +222,25 @@ def main():
         liaci_metrics = eval_liaci(dl_liaci_val, model, device) if dl_liaci_val is not None else None
 
         msg = f"[Epoch {epoch:03d}] loss={train_loss:.4f}"
-        if acc_fig is not None: msg += f" | fig_acc={acc_fig:.3f}"
-        if liaci_metrics is not None: msg += f" | liaci_diceS={liaci_metrics['dice_S']:.3f} liaci_diceM={liaci_metrics['dice_M']:.3f}"
+        if acc_fig is not None:
+            msg += f" | fig_acc={acc_fig:.3f}"
+        if liaci_metrics is not None:
+            msg += f" | liaci_diceS={liaci_metrics['dice_S']:.3f} liaci_diceM={liaci_metrics['dice_M']:.3f}"
         print(msg)
 
-        # best 저장(세그 목적이 핵심이라 LIACI dice_mean 기준)
+        # best 저장 (세그 목적이 핵심이라 LIACI dice_mean 기준)
         if liaci_metrics is not None:
             if liaci_metrics["dice_mean"] > best_liaci:
                 best_liaci = liaci_metrics["dice_mean"]
                 Path(args.save).parent.mkdir(parents=True, exist_ok=True)
-                torch.save({"epoch": epoch,
-                            "state_dict": model.module.state_dict() if isinstance(model,
-                                                                                  torch.nn.DataParallel) else model.state_dict(),
-                            "best_liaci": best_liaci,
-                            "args": vars(args)}, args.save)
+                torch.save({
+                    "epoch": epoch,
+                    "state_dict": model.state_dict(),
+                    "best_liaci": best_liaci,
+                    "args": vars(args)
+                }, args.save)
+                print(f" -> saved best to {args.save} (dice_mean={best_liaci:.4f})")
 
-                print(f"  -> saved best to {args.save} (dice_mean={best_liaci:.4f})")
 
 if __name__ == "__main__":
     main()
