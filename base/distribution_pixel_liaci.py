@@ -2,7 +2,7 @@ import os
 import numpy as np
 from PIL import Image
 
-mask_dir = r"C:\Users\chsobn0710\PycharmProjects\biofouling\data\liaci\masks"
+mask_dir = r"C:\Users\chsobn0710\Desktop\biofouling\data\liaci\masks"
 count_M, count_S = [], []
 
 for fname in os.listdir(mask_dir):

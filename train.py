@@ -104,6 +104,8 @@ def eval_liaci(dl, model, device):
     model.eval()
     dices_S, dices_M, cnt = 0.0, 0.0, 0
     for batch in dl:
+        if batch is None:  # 🔑 None 배치 스킵
+            continue
         imgs = batch["image"].to(device)
         out = model(imgs)
         dS = dice_from_logits(out["S"].cpu(), batch["S"])
@@ -132,7 +134,7 @@ def main():
     ap.add_argument("--use_bin", action="store_true", help="Figshare: use binary labels (0/1)")
     ap.add_argument("--num_workers", type=int, default=4)
     ap.add_argument("--seed", type=int, default=42)
-    ap.add_argument("--save", type=str, default="exp/checkpoints/best_liaci.pt")
+    ap.add_argument("--save", type=str, default="exp/checkpoints/best_liaci_first.pt")
     ap.add_argument("--mode", type=str,
                     choices=["multitask", "sequential-A", "sequential-B"],
                     default="multitask",

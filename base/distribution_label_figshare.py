@@ -1,7 +1,7 @@
 import pandas as pd
 from collections import Counter
 
-fig_csv = r"C:\Users\chsobn0710\PycharmProjects\biofouling\data\figshare\labels.csv"
+fig_csv = r"C:\Users\chsobn0710\Desktop\biofouling\data\figshare\labels.csv"
 df_fig = pd.read_csv(fig_csv)
 
 print("=== Figshare 전체 데이터 분포 ===")
