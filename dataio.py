@@ -75,6 +75,7 @@ class LiaciDataset(Dataset):
     """
     def __init__(self, root="data/liaci", split="train", transform=None, strict=True, size: Optional[Tuple[int,int]]=None):
         self.root = Path(root)
+        self.split = split
         self.meta = pd.read_csv(self.root / "splits.csv")
         self.meta = self.meta[self.meta["split"] == split].reset_index(drop=True)
         self.transform = transform
