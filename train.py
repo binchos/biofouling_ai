@@ -158,14 +158,15 @@ def eval_liaci(dl, model, device):
         # M: 양성 샘플만
         dice_vec, n_empty, n_empty_fp = dice_pos_batch(out["M"].cpu(), batch["M"])
         if dice_vec is not None and dice_vec.numel() > 0:
-            sumMpos += float(dice_vec.mean().item())
-            cntMposB += 1
+            sumMpos += float(dice_vec.sum().item())
+            cntMposB += int(dice_vec.numel())
+
         empty_fp += n_empty_fp
         cnt_empty += n_empty
 
     dice_S     = (sumS/cntS) if cntS else 0.0
     dice_M_all = (sumMall/cntMall) if cntMall else 0.0
-    dice_M_pos = (sumMpos/cntMposB) if cntMposB else 0.0
+    dice_M_pos = (sumMpos / cntMposB) if cntMposB else 0.0
     empty_FPR  = (empty_fp/cnt_empty) if cnt_empty else 0.0
 
     return {
@@ -187,7 +188,7 @@ def main():
     ap.add_argument("--batch", type=int, default=16, help="Figshare batch size")
     ap.add_argument("--seg_batch", type=int, default=4, help="LIACi batch size")
     ap.add_argument("--lr", type=float, default=3e-4)
-    ap.add_argument("--alpha", type=float, default=3.0, help="weight for Marine seg loss")
+    ap.add_argument("--alpha", type=float, default=2.0, help="weight for Marine seg loss")
     ap.add_argument("--beta", type=float, default=0.5, help="weight for cls loss")
     ap.add_argument("--use_bin", action="store_true", help="Figshare: use binary labels (0/1)")
     ap.add_argument("--num_workers", type=int, default=4)
@@ -195,7 +196,7 @@ def main():
     ap.add_argument("--save", type=str, default="exp/checkpoints/best_liaci_first_edit_val.pt")
     ap.add_argument("--mode", type=str, choices=["multitask", "sequential-A", "sequential-B"], default="multitask",
                     help="multitask: Figshare+LIACI 교대 / sequential-A: Figshare만 / sequential-B: LIACI만")
-    ap.add_argument("--posw_M", type=float, default=14.2, help="BCE pos_weight for Marine (handles sparsity)")
+    ap.add_argument("--posw_M", type=float, default=8.2, help="BCE pos_weight for Marine (handles sparsity)")
     args = ap.parse_args()
 
     set_seed(args.seed)
@@ -265,6 +266,8 @@ def main():
     # -------------------- Train --------------------
     best_liaci = -1.0
     for epoch in range(1, args.epochs + 1):
+        criterion.beta = 1.0 if epoch <= 5 else args.beta
+        criterion._epoch = epoch
         if args.mode == "multitask":
             train_loss = train_interleaved_epoch(dl_fig_train, dl_liaci_train, model, criterion, optimizer, device)
         elif args.mode == "sequential-A":  # Figshare only

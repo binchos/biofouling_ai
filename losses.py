@@ -86,10 +86,11 @@ class MultiTaskLoss(nn.Module):
 
             with torch.no_grad():
                 pos_mask = (batch["M"].flatten(1).sum(dim=1) > 0)
+            use_m_dice = (getattr(self, "_epoch", 1) >= 4)
 
             if pos_mask.any():
                 dice_vec = dice_loss_per_sample_from_logits(pred_M[pos_mask], batch["M"][pos_mask])
-                loss_M = bce_M + dice_vec.mean()
+                loss_M = bce_M + (dice_vec.mean() if use_m_dice else 0.0)  # ← 워밍업 반영
             else:
                 loss_M = bce_M
 
