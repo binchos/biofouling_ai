@@ -102,33 +102,45 @@ def eval_liaci(dl, model, device):
     if dl is None:
         return None
     model.eval()
-    dices_S, dices_M, cnt_S, cnt_M = 0.0, 0.0, 0, 0
+    dices_S, dices_M_all, dices_M_filtered = 0.0, 0.0, 0.0
+    cnt_S, cnt_M_all, cnt_M_filtered = 0, 0, 0
     for batch in dl:
         if batch is None:
             continue
         imgs = batch["image"].to(device)
         out = model(imgs)
 
-        # Structure는 항상 존재 → 바로 계산
+        # Structure는 항상 존재
         dS = dice_from_logits(out["S"].cpu(), batch["S"])
         if dS is not None:
             dices_S += dS
             cnt_S += 1
 
-        # Marine은 M 픽셀이 충분히 있는 경우에만 Dice 계산
+        # Marine - 모든 이미지 기준
+        dM_all = dice_from_logits(out["M"].cpu(), batch["M"])
+        if dM_all is not None:
+            dices_M_all += dM_all
+            cnt_M_all += 1
+
+        # Marine - 충분한 픽셀 있는 경우만 (Filtered)
         if batch["M"].sum() > 100:
-            dM = dice_from_logits(out["M"].cpu(), batch["M"])
-            if dM is not None:
-                dices_M += dM
-                cnt_M += 1
+            dM_filtered = dice_from_logits(out["M"].cpu(), batch["M"])
+            if dM_filtered is not None:
+                dices_M_filtered += dM_filtered
+                cnt_M_filtered += 1
 
     if cnt_S == 0:
         return None
+    avg_dice_S = dices_S / cnt_S
+    avg_dice_M_filtered = (dices_M_filtered / cnt_M_filtered) if cnt_M_filtered > 0 else 0.0
+
     return {
-        "dice_S": dices_S / cnt_S,
-        "dice_M": (dices_M / cnt_M) if cnt_M > 0 else 0.0,
-        "dice_mean": ((dices_S / cnt_S) + ((dices_M / cnt_M) if cnt_M > 0 else 0.0)) / 2
+        "dice_S": avg_dice_S,
+        "dice_M": avg_dice_M_filtered,  # ← 핵심 지표로 사용됨
+        "dice_M_all": dices_M_all / cnt_M_all if cnt_M_all > 0 else 0.0,
+        "dice_mean": (avg_dice_S + avg_dice_M_filtered) / 2
     }
+
 #train에서는 M 픽셀 < 100인 샘플을 return None으로 걸렀는데 평가시에는 포함되는 문제 해결
 #이것때문에 liaci_diceM = 0.000
 
@@ -247,7 +259,8 @@ def main():
         if acc_fig is not None:
             msg += f" | fig_acc={acc_fig:.3f}"
         if liaci_metrics is not None:
-            msg += f" | liaci_diceS={liaci_metrics['dice_S']:.3f} liaci_diceM={liaci_metrics['dice_M']:.3f}"
+            msg += f" | liaci_diceS={liaci_metrics['dice_S']:.3f} liaci_diceM={liaci_metrics['dice_M']:.3f} (all={liaci_metrics['dice_M_all']:.3f})"
+
         print(msg)
 
         # best 저장 (세그 목적이 핵심이라 LIACI dice_mean 기준)
