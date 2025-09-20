@@ -1,6 +1,3 @@
-# train.py
-
-
 import argparse
 from itertools import cycle
 from pathlib import Path
@@ -15,14 +12,9 @@ from model import MultiHeadNet
 from losses import MultiTaskLoss
 
 
-
-tfm_train = T.Compose([
-    T.ToTensor()
-])
-tfm_val = T.Compose([
-    T.ToTensor()
-])
-
+# -------------------- Utils --------------------
+IMNET_MEAN = (0.485, 0.456, 0.406)
+IMNET_STD  = (0.229, 0.224, 0.225)
 
 def set_seed(seed=42):
     random.seed(seed)
@@ -32,7 +24,12 @@ def set_seed(seed=42):
     torch.backends.cudnn.benchmark = True
 
 
-# ------- Metrics -------
+def collate_skip_none(batch):
+    batch = [b for b in batch if b is not None]
+    return torch.utils.data.default_collate(batch) if len(batch) > 0 else None
+
+
+# -------------------- Metrics --------------------
 @torch.no_grad()
 def accuracy_top1(logits: torch.Tensor, target: torch.Tensor):
     if logits is None or target is None:
@@ -42,8 +39,25 @@ def accuracy_top1(logits: torch.Tensor, target: torch.Tensor):
 
 
 @torch.no_grad()
-def dice_from_logits(logits: torch.Tensor, target: torch.Tensor, thr=0.5, eps=1e-6):
-    if logits is None or target is None:
+def dice_all_from_logits(logits: torch.Tensor, target: torch.Tensor, thr=0.5, eps=1e-6):
+    """Dice on all images with the empty-mask rule.
+    - If GT is empty and Pred is empty -> 1.0 (correct)
+    - If GT is empty and Pred has any positive -> 0.0 (false positive)
+    Otherwise, standard thresholded Dice.
+    """
+    prob = torch.sigmoid(logits)
+    pred = (prob > thr).float()
+    if target.sum() == 0:
+        return 1.0 if pred.sum() == 0 else 0.0
+    inter = 2.0 * (pred * target).sum()
+    den = pred.sum() + target.sum() + eps
+    return (inter / den).item()
+
+
+@torch.no_grad()
+def dice_pos_from_logits(logits: torch.Tensor, target: torch.Tensor, thr=0.5, eps=1e-6):
+    """Dice only for positive-GT images. Returns None if GT is empty."""
+    if target.sum() == 0:
         return None
     prob = torch.sigmoid(logits)
     pred = (prob > thr).float()
@@ -51,31 +65,26 @@ def dice_from_logits(logits: torch.Tensor, target: torch.Tensor, thr=0.5, eps=1e
     den = pred.sum() + target.sum() + eps
     return (inter / den).item()
 
-def collate_skip_none(batch):
-    batch = [b for b in batch if b is not None]
-    return torch.utils.data.default_collate(batch) if len(batch) > 0 else None
 
-
-# ------- Train loops -------
+# -------------------- Train loops --------------------
 def train_interleaved_epoch(dl_fig, dl_liaci, model, criterion, optim, device):
     model.train()
     total_loss, steps = 0.0, 0
     for b_fig, b_seg in zip(dl_fig, cycle(dl_liaci)):
-        for batch in (b_fig, b_seg):  # Figshare → LIACI 교대
+        for batch in (b_fig, b_seg):  # Figshare -> LIACI 교대 학습
             if batch is None:
                 continue
             imgs = batch["image"].to(device)
-            # 항상 두 헤드 forward (공유 백본)
             out = model(imgs)
-            # 사용할 라벨만 디바이스로
+            # 필요한 라벨만 디바이스로
             for k in ("S", "M", "cls"):
-                if k in batch and batch[k] is not None:
+                if k in batch and batch[k] is not None and torch.is_tensor(batch[k]):
                     batch[k] = batch[k].to(device)
             loss = criterion(out, batch)
             optim.zero_grad()
             loss.backward()
             optim.step()
-            total_loss += loss.item()
+            total_loss += float(loss.item())
             steps += 1
     return total_loss / max(1, steps)
 
@@ -88,7 +97,7 @@ def eval_figshare(dl, model, device):
     accs, cnt = 0.0, 0
     for batch in dl:
         imgs = batch["image"].to(device)
-        out = model(imgs)  # 항상 둘 다 forward
+        out = model(imgs)
         if "cls" in batch:
             acc = accuracy_top1(out["cls"].cpu(), batch["cls"])
             if acc is not None:
@@ -99,144 +108,151 @@ def eval_figshare(dl, model, device):
 
 @torch.no_grad()
 def eval_liaci(dl, model, device):
-    if dl is None: return None
+    if dl is None:
+        return None
     model.eval()
-    cnt_S = cnt_M_all = cnt_M_pos = cnt_M_empty = 0
-    sum_S = sum_M_all = sum_M_pos = 0.0
-    empty_fp = 0
-
+    sumS=cntS=sumMall=cntMall=sumMpos=cntMpos=empty_fp=cnt_empty=0
     for batch in dl:
-        if batch is None: continue
+        if batch is None:
+            continue
         imgs = batch["image"].to(device)
         out = model(imgs)
 
-        # ---- S ----
+        # S: 전체(빈 마스크 규칙)
         dS = dice_all_from_logits(out["S"].cpu(), batch["S"])
-        sum_S += dS; cnt_S += 1
+        sumS += dS; cntS += 1
 
-        # ---- M (all / pos / empty-FPR) ----
-        dM_all = dice_all_from_logits(out["M"].cpu(), batch["M"])
-        sum_M_all += dM_all; cnt_M_all += 1
+        # M: 전체(빈 마스크 규칙)
+        dAll = dice_all_from_logits(out["M"].cpu(), batch["M"])
+        sumMall += dAll; cntMall += 1
 
-        dM_pos = dice_pos_from_logits(out["M"].cpu(), batch["M"])
-        if dM_pos is not None:
-            sum_M_pos += dM_pos; cnt_M_pos += 1
-        else:
-            # empty GT → FPR 집계
+        # M: 양성 샘플만
+        dPos = dice_pos_from_logits(out["M"].cpu(), batch["M"])
+        if dPos is None:
             prob = torch.sigmoid(out["M"].cpu())
             pred = (prob > 0.5).float()
             if pred.sum() > 0:
                 empty_fp += 1
-            cnt_M_empty += 1
+            cnt_empty += 1
+        else:
+            sumMpos += dPos
+            cntMpos += 1
+
+    dice_S     = (sumS/cntS) if cntS else 0.0
+    dice_M_all = (sumMall/cntMall) if cntMall else 0.0
+    dice_M_pos = (sumMpos/cntMpos) if cntMpos else 0.0
+    empty_FPR  = (empty_fp/cnt_empty) if cnt_empty else 0.0
 
     return {
-        "dice_S":      (sum_S / cnt_S) if cnt_S else 0.0,
-        "dice_M_all":  (sum_M_all / cnt_M_all) if cnt_M_all else 0.0,
-        "dice_M_pos":  (sum_M_pos / cnt_M_pos) if cnt_M_pos else 0.0,
-        "empty_FPR":   (empty_fp / cnt_M_empty) if cnt_M_empty else 0.0,
-        # 멀티태스크 핵심 지표는 보통 pos 기준이 공정
-        "dice_mean":   ((sum_S / cnt_S) + (sum_M_pos / cnt_M_pos)) / 2 if (cnt_S and cnt_M_pos) else 0.0,
-        "n_pos": cnt_M_pos, "n_empty": cnt_M_empty
+        "dice_S": dice_S,
+        "dice_M_all": dice_M_all,
+        "dice_M_pos": dice_M_pos,
+        "empty_FPR": empty_FPR,
+        "n_pos": cntMpos,
+        "n_empty": cnt_empty,
+        # 핵심 평균은 보통 S와 M_pos를 사용
+        "dice_mean": (dice_S + dice_M_pos) / 2 if cntMpos else 0.0,
     }
 
 
-#train에서는 M 픽셀 < 100인 샘플을 return None으로 걸렀는데 평가시에는 포함되는 문제 해결
-#이것때문에 liaci_diceM = 0.000
-
+# -------------------- Main --------------------
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--epochs", type=int, default=20)
-    ap.add_argument("--batch", type=int, default=16)
+    ap.add_argument("--batch", type=int, default=16, help="Figshare batch size")
+    ap.add_argument("--seg_batch", type=int, default=4, help="LIACi batch size")
     ap.add_argument("--lr", type=float, default=3e-4)
-    ap.add_argument("--alpha", type=float, default=1.0, help="weight for Marine seg loss")
+    ap.add_argument("--alpha", type=float, default=3.0, help="weight for Marine seg loss")
     ap.add_argument("--beta", type=float, default=0.5, help="weight for cls loss")
-    ap.add_argument("--img_size", type=int, default=512)
     ap.add_argument("--use_bin", action="store_true", help="Figshare: use binary labels (0/1)")
     ap.add_argument("--num_workers", type=int, default=4)
     ap.add_argument("--seed", type=int, default=42)
-    ap.add_argument("--save", type=str, default=" exp/checkpoints/best_liaci_first_edit_val.pt")
-    ap.add_argument("--mode", type=str,
-                    choices=["multitask", "sequential-A", "sequential-B"],
-                    default="multitask",
+    ap.add_argument("--save", type=str, default="exp/checkpoints/best_liaci_first_edit_val.pt")
+    ap.add_argument("--mode", type=str, choices=["multitask", "sequential-A", "sequential-B"], default="multitask",
                     help="multitask: Figshare+LIACI 교대 / sequential-A: Figshare만 / sequential-B: LIACI만")
+    ap.add_argument("--posw_M", type=float, default=14.2, help="BCE pos_weight for Marine (handles sparsity)")
     args = ap.parse_args()
 
     set_seed(args.seed)
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
+    # Transforms (ImageNet 정규화 필수)
     tfm_train = T.Compose([
         T.ToTensor(),
-        T.Normalize([0.485, 0.456, 0.406],
-                    [0.229, 0.224, 0.225])
+        T.Normalize(IMNET_MEAN, IMNET_STD),
     ])
     tfm_val = T.Compose([
         T.ToTensor(),
-        T.Normalize([0.485, 0.456, 0.406],
-                    [0.229, 0.224, 0.225])
+        T.Normalize(IMNET_MEAN, IMNET_STD),
     ])
+
     # Datasets & Loaders
     dl_fig_train = dl_fig_val = dl_liaci_train = dl_liaci_val = None
 
     if args.mode in ["multitask", "sequential-A"]:
         fig_train = FigshareDataset(split="train", use_bin=args.use_bin, transform=tfm_train)
-        fig_val = FigshareDataset(split="val", use_bin=args.use_bin, transform=tfm_val)
-        dl_fig_train = DataLoader(fig_train, batch_size=16, shuffle=True,
+        fig_val   = FigshareDataset(split="val",   use_bin=args.use_bin, transform=tfm_val)
+        dl_fig_train = DataLoader(fig_train, batch_size=args.batch, shuffle=True,
                                   num_workers=args.num_workers, pin_memory=True)
-        dl_fig_val = DataLoader(fig_val, batch_size=16, shuffle=False,
-                                num_workers=args.num_workers, pin_memory=True)
+        dl_fig_val   = DataLoader(fig_val,   batch_size=args.batch, shuffle=False,
+                                  num_workers=args.num_workers, pin_memory=True)
 
     if args.mode in ["multitask", "sequential-B"]:
         # LIACi 입력 크기 = (H=736, W=1280)
         liaci_train = LiaciDataset(split="train", transform=tfm_train, size=(736, 1280))
-        liaci_val = LiaciDataset(split="val", transform=tfm_val, size=(736, 1280))
-        dl_liaci_train = DataLoader(liaci_train, batch_size=4 if args.mode == "multitask" else 4,
-                                    shuffle=True, num_workers=args.num_workers, pin_memory=True,collate_fn=collate_skip_none)
-        dl_liaci_val = DataLoader(liaci_val, batch_size=4, shuffle=False,
-                                  num_workers=args.num_workers, pin_memory=True,collate_fn=collate_skip_none)
+        liaci_val   = LiaciDataset(split="val",   transform=tfm_val,   size=(736, 1280))
+        dl_liaci_train = DataLoader(liaci_train, batch_size=args.seg_batch, shuffle=True,
+                                    num_workers=args.num_workers, pin_memory=True, collate_fn=collate_skip_none)
+        dl_liaci_val   = DataLoader(liaci_val,   batch_size=args.seg_batch, shuffle=False,
+                                    num_workers=args.num_workers, pin_memory=True, collate_fn=collate_skip_none)
 
-    # Model / Loss / Optim
-    model = MultiHeadNet(backbone_name="convnext_tiny",
-                         n_cls=(2 if args.use_bin else 3)).to(device)
+    # Model
+    model = MultiHeadNet(backbone_name="convnext_tiny", n_cls=(2 if args.use_bin else 3)).to(device)
     if torch.cuda.device_count() > 1:
         print(f"Using {torch.cuda.device_count()} GPUs!")
         model = torch.nn.DataParallel(model)
-    if args.use_bin:
-        total = 7822 + 2441
-        w0 = total / 7822
-        w1 = total / 2441
-        weights_bin = torch.tensor([w0, w1], dtype=torch.float32)
-        weights_bin = weights_bin / weights_bin.sum()
-        weights_bin = weights_bin.to(device)
-    else:
-        weights_bin = None
 
-    criterion = MultiTaskLoss(alpha=args.alpha,
-                              beta=(0.0 if args.mode == "sequential-B" else args.beta),
-                              class_weight=weights_bin)
+    # Classification class weights (handle imbalance)
+    weights_cls = None
+    if args.mode in ["multitask", "sequential-A"]:
+        # 역비 가중치(클래스 빈도에 반비례)
+        import pandas as pd
+        if args.use_bin:
+            vc = fig_train.meta["label_bin"].value_counts().sort_index()
+        else:
+            vc = fig_train.meta["label_cls"].value_counts().sort_index()
+        total = vc.sum()
+        inv = total / vc.clip(lower=1)
+        weights_cls = torch.tensor(inv.values, dtype=torch.float32, device=device)
+        weights_cls = weights_cls / weights_cls.sum()
+
+    # Criterion / Optimizer
+    criterion = MultiTaskLoss(
+        alpha=args.alpha,
+        beta=(0.0 if args.mode == "sequential-B" else args.beta),
+        class_weight=weights_cls,
+        pos_weight_M=args.posw_M,
+    ).to(device)
+
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
 
+    # -------------------- Train --------------------
     best_liaci = -1.0
     for epoch in range(1, args.epochs + 1):
         if args.mode == "multitask":
-            train_loss = train_interleaved_epoch(dl_fig_train, dl_liaci_train,
-                                                 model, criterion, optimizer, device)
-        elif args.mode == "sequential-A":  # Figshare만
-            model.train()
-            total, steps = 0.0, 0
+            train_loss = train_interleaved_epoch(dl_fig_train, dl_liaci_train, model, criterion, optimizer, device)
+        elif args.mode == "sequential-A":  # Figshare only
+            model.train(); total, steps = 0.0, 0
             for batch in dl_fig_train:
                 imgs = batch["image"].to(device)
                 out = model(imgs)
                 batch["cls"] = batch["cls"].to(device)
                 loss = criterion(out, batch)
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
-                total += loss.item()
-                steps += 1
+                optimizer.zero_grad(); loss.backward(); optimizer.step()
+                total += float(loss.item()); steps += 1
             train_loss = total / max(1, steps)
-        else:  # LIACI만
-            model.train()
-            total, steps = 0.0, 0
+        else:  # sequential-B: LIACi only
+            model.train(); total, steps = 0.0, 0
             for batch in dl_liaci_train:
                 if batch is None:
                     continue
@@ -245,14 +261,11 @@ def main():
                 batch["S"] = batch["S"].to(device)
                 batch["M"] = batch["M"].to(device)
                 loss = criterion(out, batch)
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
-                total += loss.item()
-                steps += 1
+                optimizer.zero_grad(); loss.backward(); optimizer.step()
+                total += float(loss.item()); steps += 1
             train_loss = total / max(1, steps)
 
-        # Validation
+        # -------------------- Validation --------------------
         acc_fig = eval_figshare(dl_fig_val, model, device) if dl_fig_val is not None else None
         liaci_metrics = eval_liaci(dl_liaci_val, model, device) if dl_liaci_val is not None else None
 
@@ -260,18 +273,24 @@ def main():
         if acc_fig is not None:
             msg += f" | fig_acc={acc_fig:.3f}"
         if liaci_metrics is not None:
-            msg += f" | liaci_diceS={liaci_metrics['dice_S']:.3f} liaci_diceM={liaci_metrics['dice_M']:.3f} (all={liaci_metrics['dice_M_all']:.3f})"
-
+            msg += (
+                f" | liaci: S={liaci_metrics['dice_S']:.3f}"
+                f" M_pos={liaci_metrics['dice_M_pos']:.3f}"
+                f" M_all={liaci_metrics['dice_M_all']:.3f}"
+                f" empty_FPR={liaci_metrics['empty_FPR']:.3f}"
+                f" (n_pos={liaci_metrics['n_pos']}, n_empty={liaci_metrics['n_empty']})"
+            )
         print(msg)
 
-        # best 저장 (세그 목적이 핵심이라 LIACI dice_mean 기준)
+        # Save best (seg 목적 핵심이므로 S & M_pos의 평균인 dice_mean 기준)
         if liaci_metrics is not None:
             if liaci_metrics["dice_mean"] > best_liaci:
                 best_liaci = liaci_metrics["dice_mean"]
                 Path(args.save).parent.mkdir(parents=True, exist_ok=True)
+                state_dict = model.module.state_dict() if isinstance(model, torch.nn.DataParallel) else model.state_dict()
                 torch.save({
                     "epoch": epoch,
-                    "state_dict": model.state_dict(),
+                    "state_dict": state_dict,
                     "best_liaci": best_liaci,
                     "args": vars(args)
                 }, args.save)

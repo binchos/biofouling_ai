@@ -128,7 +128,6 @@ class LiaciDataset(Dataset):
         # M ⊆ S 보장 (전처리에서 이미  했지만 안전망)
         M = (M * (S > 0.5)).float()
 
-        if self.split == "train" and (M == 1).sum() < 100:
-            return None
+
 
         return {"image": img, "S": S, "M": M}
