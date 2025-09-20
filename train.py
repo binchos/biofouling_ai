@@ -111,6 +111,7 @@ def train_interleaved_epoch(dl_fig, dl_liaci, model, criterion, optim, device):
             loss = criterion(out, batch)
             optim.zero_grad()
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optim.step()
             total_loss += float(loss.item())
             steps += 1
@@ -201,7 +202,8 @@ def main():
 
     set_seed(args.seed)
     device = "cuda" if torch.cuda.is_available() else "cpu"
-
+    print(f"[cfg] alpha={args.alpha}, beta_warmup<=5ep, posw_M={args.posw_M}, mode={args.mode}, "
+          f"lr={args.lr}, batch={args.batch}, seg_batch={args.seg_batch}")
     # Transforms (ImageNet 정규화 필수)
     tfm_train = T.Compose([
         T.ToTensor(),
@@ -277,7 +279,9 @@ def main():
                 out = model(imgs)
                 batch["cls"] = batch["cls"].to(device)
                 loss = criterion(out, batch)
-                optimizer.zero_grad(); loss.backward(); optimizer.step()
+                optimizer.zero_grad(); loss.backward()
+                torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+                optimizer.step()
                 total += float(loss.item()); steps += 1
             train_loss = total / max(1, steps)
         else:  # sequential-B: LIACi only
@@ -290,7 +294,9 @@ def main():
                 batch["S"] = batch["S"].to(device)
                 batch["M"] = batch["M"].to(device)
                 loss = criterion(out, batch)
-                optimizer.zero_grad(); loss.backward(); optimizer.step()
+                optimizer.zero_grad(); loss.backward()
+                torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+                optimizer.step()
                 total += float(loss.item()); steps += 1
             train_loss = total / max(1, steps)
 
