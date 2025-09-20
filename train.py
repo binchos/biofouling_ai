@@ -102,26 +102,35 @@ def eval_liaci(dl, model, device):
     if dl is None:
         return None
     model.eval()
-    dices_S, dices_M, cnt = 0.0, 0.0, 0
+    dices_S, dices_M, cnt_S, cnt_M = 0.0, 0.0, 0, 0
     for batch in dl:
-        if batch is None:  # 🔑 None 배치 스킵
+        if batch is None:
             continue
         imgs = batch["image"].to(device)
         out = model(imgs)
+
+        # Structure는 항상 존재 → 바로 계산
         dS = dice_from_logits(out["S"].cpu(), batch["S"])
-        dM = dice_from_logits(out["M"].cpu(), batch["M"])
-        if dS is not None and dM is not None:
+        if dS is not None:
             dices_S += dS
-            dices_M += dM
-            cnt += 1
-    if cnt == 0:
+            cnt_S += 1
+
+        # Marine은 M 픽셀이 충분히 있는 경우에만 Dice 계산
+        if batch["M"].sum() > 100:
+            dM = dice_from_logits(out["M"].cpu(), batch["M"])
+            if dM is not None:
+                dices_M += dM
+                cnt_M += 1
+
+    if cnt_S == 0:
         return None
     return {
-        "dice_S": dices_S / cnt,
-        "dice_M": dices_M / cnt,
-        "dice_mean": (dices_S + dices_M) / (2 * cnt)
+        "dice_S": dices_S / cnt_S,
+        "dice_M": (dices_M / cnt_M) if cnt_M > 0 else 0.0,
+        "dice_mean": ((dices_S / cnt_S) + ((dices_M / cnt_M) if cnt_M > 0 else 0.0)) / 2
     }
-
+#train에서는 M 픽셀 < 100인 샘플을 return None으로 걸렀는데 평가시에는 포함되는 문제 해결
+#이것때문에 liaci_diceM = 0.000
 
 def main():
     ap = argparse.ArgumentParser()
@@ -134,7 +143,7 @@ def main():
     ap.add_argument("--use_bin", action="store_true", help="Figshare: use binary labels (0/1)")
     ap.add_argument("--num_workers", type=int, default=4)
     ap.add_argument("--seed", type=int, default=42)
-    ap.add_argument("--save", type=str, default="exp/checkpoints/best_liaci_first.pt")
+    ap.add_argument("--save", type=str, default=" exp/checkpoints/best_liaci_first_edit_val.pt")
     ap.add_argument("--mode", type=str,
                     choices=["multitask", "sequential-A", "sequential-B"],
                     default="multitask",
