@@ -99,47 +99,46 @@ def eval_figshare(dl, model, device):
 
 @torch.no_grad()
 def eval_liaci(dl, model, device):
-    if dl is None:
-        return None
+    if dl is None: return None
     model.eval()
-    dices_S, dices_M_all, dices_M_filtered = 0.0, 0.0, 0.0
-    cnt_S, cnt_M_all, cnt_M_filtered = 0, 0, 0
+    cnt_S = cnt_M_all = cnt_M_pos = cnt_M_empty = 0
+    sum_S = sum_M_all = sum_M_pos = 0.0
+    empty_fp = 0
+
     for batch in dl:
-        if batch is None:
-            continue
+        if batch is None: continue
         imgs = batch["image"].to(device)
         out = model(imgs)
 
-        # Structure는 항상 존재
-        dS = dice_from_logits(out["S"].cpu(), batch["S"])
-        if dS is not None:
-            dices_S += dS
-            cnt_S += 1
+        # ---- S ----
+        dS = dice_all_from_logits(out["S"].cpu(), batch["S"])
+        sum_S += dS; cnt_S += 1
 
-        # Marine - 모든 이미지 기준
-        dM_all = dice_from_logits(out["M"].cpu(), batch["M"])
-        if dM_all is not None:
-            dices_M_all += dM_all
-            cnt_M_all += 1
+        # ---- M (all / pos / empty-FPR) ----
+        dM_all = dice_all_from_logits(out["M"].cpu(), batch["M"])
+        sum_M_all += dM_all; cnt_M_all += 1
 
-        # Marine - 충분한 픽셀 있는 경우만 (Filtered)
-        if batch["M"].sum() > 100:
-            dM_filtered = dice_from_logits(out["M"].cpu(), batch["M"])
-            if dM_filtered is not None:
-                dices_M_filtered += dM_filtered
-                cnt_M_filtered += 1
-
-    if cnt_S == 0:
-        return None
-    avg_dice_S = dices_S / cnt_S
-    avg_dice_M_filtered = (dices_M_filtered / cnt_M_filtered) if cnt_M_filtered > 0 else 0.0
+        dM_pos = dice_pos_from_logits(out["M"].cpu(), batch["M"])
+        if dM_pos is not None:
+            sum_M_pos += dM_pos; cnt_M_pos += 1
+        else:
+            # empty GT → FPR 집계
+            prob = torch.sigmoid(out["M"].cpu())
+            pred = (prob > 0.5).float()
+            if pred.sum() > 0:
+                empty_fp += 1
+            cnt_M_empty += 1
 
     return {
-        "dice_S": avg_dice_S,
-        "dice_M": avg_dice_M_filtered,  # ← 핵심 지표로 사용됨
-        "dice_M_all": dices_M_all / cnt_M_all if cnt_M_all > 0 else 0.0,
-        "dice_mean": (avg_dice_S + avg_dice_M_filtered) / 2
+        "dice_S":      (sum_S / cnt_S) if cnt_S else 0.0,
+        "dice_M_all":  (sum_M_all / cnt_M_all) if cnt_M_all else 0.0,
+        "dice_M_pos":  (sum_M_pos / cnt_M_pos) if cnt_M_pos else 0.0,
+        "empty_FPR":   (empty_fp / cnt_M_empty) if cnt_M_empty else 0.0,
+        # 멀티태스크 핵심 지표는 보통 pos 기준이 공정
+        "dice_mean":   ((sum_S / cnt_S) + (sum_M_pos / cnt_M_pos)) / 2 if (cnt_S and cnt_M_pos) else 0.0,
+        "n_pos": cnt_M_pos, "n_empty": cnt_M_empty
     }
+
 
 #train에서는 M 픽셀 < 100인 샘플을 return None으로 걸렀는데 평가시에는 포함되는 문제 해결
 #이것때문에 liaci_diceM = 0.000
@@ -165,14 +164,16 @@ def main():
     set_seed(args.seed)
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    # Transform (두 도메인 동일 해상도로 맞춤)
     tfm_train = T.Compose([
-        T.ToTensor()
+        T.ToTensor(),
+        T.Normalize([0.485, 0.456, 0.406],
+                    [0.229, 0.224, 0.225])
     ])
     tfm_val = T.Compose([
-        T.ToTensor()
+        T.ToTensor(),
+        T.Normalize([0.485, 0.456, 0.406],
+                    [0.229, 0.224, 0.225])
     ])
-
     # Datasets & Loaders
     dl_fig_train = dl_fig_val = dl_liaci_train = dl_liaci_val = None
 
