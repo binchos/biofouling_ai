@@ -39,31 +39,59 @@ def accuracy_top1(logits: torch.Tensor, target: torch.Tensor):
 
 
 @torch.no_grad()
-def dice_all_from_logits(logits: torch.Tensor, target: torch.Tensor, thr=0.5, eps=1e-6):
-    """Dice on all images with the empty-mask rule.
-    - If GT is empty and Pred is empty -> 1.0 (correct)
-    - If GT is empty and Pred has any positive -> 0.0 (false positive)
-    Otherwise, standard thresholded Dice.
+def dice_all_batch(logits: torch.Tensor, target: torch.Tensor, thr=0.5, eps=1e-6):
+    """
+    배치 단위 Dice 평균 (이미지별로 계산 후 평균)
+    - GT가 빈 이미지: pred도 빈 경우 1.0, 아니면 0.0
     """
     prob = torch.sigmoid(logits)
     pred = (prob > thr).float()
-    if target.sum() == 0:
-        return 1.0 if pred.sum() == 0 else 0.0
-    inter = 2.0 * (pred * target).sum()
-    den = pred.sum() + target.sum() + eps
-    return (inter / den).item()
+    B = target.size(0)
+
+    tgt_sum = target.flatten(1).sum(1)   # [B]
+    pred_sum = pred.flatten(1).sum(1)    # [B]
+    empty = (tgt_sum == 0)
+
+    dice = torch.zeros(B, dtype=torch.float32, device=target.device)
+
+    # 빈 GT 처리
+    if empty.any():
+        dice[empty] = (pred_sum[empty] == 0).float()
+
+    # 양성 GT 처리
+    if (~empty).any():
+        inter = 2.0 * (pred[~empty].flatten(1) * target[~empty].flatten(1)).sum(1)
+        den = pred_sum[~empty] + tgt_sum[~empty] + eps
+        dice[~empty] = inter / den
+
+    return dice.mean().item()
 
 
 @torch.no_grad()
-def dice_pos_from_logits(logits: torch.Tensor, target: torch.Tensor, thr=0.5, eps=1e-6):
-    """Dice only for positive-GT images. Returns None if GT is empty."""
-    if target.sum() == 0:
-        return None
+def dice_pos_batch(logits: torch.Tensor, target: torch.Tensor, thr=0.5, eps=1e-6):
+    """
+    양성(GT>0) 이미지들만 Dice를 이미지별로 계산해 벡터로 반환.
+    또한 빈(GT=0) 이미지 개수와 그 중 FP가 난 이미지 개수도 함께 반환.
+    """
     prob = torch.sigmoid(logits)
     pred = (prob > thr).float()
-    inter = 2.0 * (pred * target).sum()
-    den = pred.sum() + target.sum() + eps
-    return (inter / den).item()
+
+    tgt_sum = target.flatten(1).sum(1)   # [B]
+    pred_sum = pred.flatten(1).sum(1)    # [B]
+
+    pos = (tgt_sum > 0)
+    neg = ~pos
+
+    dice_vec = None
+    if pos.any():
+        inter = 2.0 * (pred[pos].flatten(1) * target[pos].flatten(1)).sum(1)
+        den = pred[pos].flatten(1).sum(1) + tgt_sum[pos] + eps
+        dice_vec = (inter / den)  # [N_pos]
+
+    n_empty = int(neg.sum().item())
+    n_empty_fp = int((pred_sum[neg] > 0).sum().item())
+
+    return dice_vec, n_empty, n_empty_fp
 
 
 # -------------------- Train loops --------------------
@@ -111,36 +139,33 @@ def eval_liaci(dl, model, device):
     if dl is None:
         return None
     model.eval()
-    sumS=cntS=sumMall=cntMall=sumMpos=cntMpos=empty_fp=cnt_empty=0
+    sumS=cntS=sumMall=cntMall=sumMpos=cntMposB=empty_fp=cnt_empty=0
+
     for batch in dl:
         if batch is None:
             continue
         imgs = batch["image"].to(device)
         out = model(imgs)
 
-        # S: 전체(빈 마스크 규칙)
-        dS = dice_all_from_logits(out["S"].cpu(), batch["S"])
+        # S: 배치 평균 (빈 마스크 규칙 포함)
+        dS = dice_all_batch(out["S"].cpu(), batch["S"])
         sumS += dS; cntS += 1
 
-        # M: 전체(빈 마스크 규칙)
-        dAll = dice_all_from_logits(out["M"].cpu(), batch["M"])
+        # M: 배치 평균 (빈 마스크 규칙 포함)
+        dAll = dice_all_batch(out["M"].cpu(), batch["M"])
         sumMall += dAll; cntMall += 1
 
         # M: 양성 샘플만
-        dPos = dice_pos_from_logits(out["M"].cpu(), batch["M"])
-        if dPos is None:
-            prob = torch.sigmoid(out["M"].cpu())
-            pred = (prob > 0.5).float()
-            if pred.sum() > 0:
-                empty_fp += 1
-            cnt_empty += 1
-        else:
-            sumMpos += dPos
-            cntMpos += 1
+        dice_vec, n_empty, n_empty_fp = dice_pos_batch(out["M"].cpu(), batch["M"])
+        if dice_vec is not None and dice_vec.numel() > 0:
+            sumMpos += float(dice_vec.mean().item())
+            cntMposB += 1
+        empty_fp += n_empty_fp
+        cnt_empty += n_empty
 
     dice_S     = (sumS/cntS) if cntS else 0.0
     dice_M_all = (sumMall/cntMall) if cntMall else 0.0
-    dice_M_pos = (sumMpos/cntMpos) if cntMpos else 0.0
+    dice_M_pos = (sumMpos/cntMposB) if cntMposB else 0.0
     empty_FPR  = (empty_fp/cnt_empty) if cnt_empty else 0.0
 
     return {
@@ -148,10 +173,10 @@ def eval_liaci(dl, model, device):
         "dice_M_all": dice_M_all,
         "dice_M_pos": dice_M_pos,
         "empty_FPR": empty_FPR,
-        "n_pos": cntMpos,
+        "n_pos": cntMposB,
         "n_empty": cnt_empty,
         # 핵심 평균은 보통 S와 M_pos를 사용
-        "dice_mean": (dice_S + dice_M_pos) / 2 if cntMpos else 0.0,
+        "dice_mean": (dice_S + dice_M_pos) / 2 if cntMposB else 0.0,
     }
 
 
@@ -224,7 +249,8 @@ def main():
         total = vc.sum()
         inv = total / vc.clip(lower=1)
         weights_cls = torch.tensor(inv.values, dtype=torch.float32, device=device)
-        weights_cls = weights_cls / weights_cls.sum()
+        # 🔴 평균이 1이 되도록 정규화 (sum이 아니라 mean!)
+        weights_cls = weights_cls / weights_cls.mean()
 
     # Criterion / Optimizer
     criterion = MultiTaskLoss(
