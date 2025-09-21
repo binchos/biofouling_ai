@@ -41,11 +41,11 @@ def dice_loss_per_sample_from_logits(logits: torch.Tensor, target: torch.Tensor,
 # losses.py
 
 class MultiTaskLoss(nn.Module):
-    def __init__(self, alpha=2.0, beta=0.5, class_weight=None, pos_weight_M=None):
+    def __init__(self, alpha=2.0, beta=0.5, class_weight=None, pos_weight_M=None, lambda_empty=0.05):
         super().__init__()
         self.alpha = float(alpha)
         self.beta = float(beta)
-
+        self.lambda_empty = float(lambda_empty)
         # device reference (파라미터가 없는 모듈 대비)
         self.register_buffer("_dev_ref", torch.tensor(0.), persistent=False)
 
@@ -85,15 +85,26 @@ class MultiTaskLoss(nn.Module):
             bce_M = self.bce_M(pred_M, batch["M"])
 
             with torch.no_grad():
-                pos_mask = (batch["M"].flatten(1).sum(dim=1) > 0)
-            use_m_dice = (getattr(self, "_epoch", 1) >= 4)
+                flat_sum = batch["M"].flatten(1).sum(dim=1)
+                pos_mask = (flat_sum > 0)
+                neg_mask = (flat_sum == 0)  # ← empty 이미지
 
+            # M Dice(워밍업) – 기존 그대로
+            use_m_dice = (getattr(self, "_epoch", 1) >= 4)
             if pos_mask.any():
                 dice_vec = dice_loss_per_sample_from_logits(pred_M[pos_mask], batch["M"][pos_mask])
-                loss_M = bce_M + (dice_vec.mean() if use_m_dice else 0.0)  # ← 워밍업 반영
+                dice_term = (dice_vec.mean() if use_m_dice else 0.0)
             else:
-                loss_M = bce_M
+                dice_term = 0.0
 
+            # --- ADD: empty 억제항 ---
+            empty_term = 0.0
+            if neg_mask.any() and self.lambda_empty > 0.0:
+                # empty 이미지에서 "양성 확률"을 평균으로 눌러줌
+                p_empty = torch.sigmoid(pred_M[neg_mask])
+                empty_term = p_empty.mean() * self.lambda_empty
+
+            loss_M = bce_M + dice_term + empty_term
             loss = loss + self.alpha * loss_M
 
         # ----- Classification (Figshare) -----

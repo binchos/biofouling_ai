@@ -12,6 +12,10 @@ class SegHead(nn.Module):
     def __init__(self, in_ch: int, out_ch: int = 2):
         super().__init__()
         self.conv = nn.Conv2d(in_ch, out_ch, kernel_size=1)
+        with torch.no_grad():
+            if self.conv.bias is not None and self.conv.bias.numel() >= 2:
+                # [S, M] 순서 그대로이므로 M 채널 = index 1
+                self.conv.bias.data[1] = -2.0
 
     def forward(self, feat, out_hw: tuple):
         x = self.conv(feat)  # Bx2xhxw

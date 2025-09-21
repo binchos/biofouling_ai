@@ -194,6 +194,9 @@ def main():
     ap.add_argument("--use_bin", action="store_true", help="Figshare: use binary labels (0/1)")
     ap.add_argument("--num_workers", type=int, default=4)
     ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--lambda_empty", type=float, default=0.05,
+                    help="penalty for predicting positives on empty (no-M) images")
+
     ap.add_argument("--save", type=str, default="exp/checkpoints/best_liaci_first_edit_val.pt")
     ap.add_argument("--mode", type=str, choices=["multitask", "sequential-A", "sequential-B"], default="multitask",
                     help="multitask: Figshare+LIACI 교대 / sequential-A: Figshare만 / sequential-B: LIACI만")
@@ -261,6 +264,7 @@ def main():
         beta=(0.0 if args.mode == "sequential-B" else args.beta),
         class_weight=weights_cls,
         pos_weight_M=args.posw_M,
+        lambda_empty=args.lambda_empty,  # ← ADD
     ).to(device)
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
