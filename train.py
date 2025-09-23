@@ -196,6 +196,7 @@ def main():
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--lambda_empty", type=float, default=0.05,
                     help="penalty for predicting positives on empty (no-M) images")
+    ap.add_argument("--load", type=str, default=None, help="Path to pretrained checkpoint")
 
     ap.add_argument("--save", type=str, default="exp/checkpoints/best_liaci_first_edit_val.pt")
     ap.add_argument("--mode", type=str, choices=["multitask", "sequential-A", "sequential-B"], default="multitask",
@@ -242,6 +243,19 @@ def main():
     if torch.cuda.device_count() > 1:
         print(f"Using {torch.cuda.device_count()} GPUs!")
         model = torch.nn.DataParallel(model)
+
+    if hasattr(args, "load") and args.load is not None:
+        print(f"Loading pretrained model from {args.load}")
+        ckpt = torch.load(args.load, map_location="cpu")
+        state = ckpt["state_dict"] if "state_dict" in ckpt else ckpt
+        filtered = {k: v for k, v in state.items() if not k.startswith("cls_head")}
+        missing, unexpected = model.load_state_dict(filtered, strict=False)
+        print(f"→ Loaded backbone + seg_head only (excluded cls_head)")
+
+
+
+
+
 
     # Classification class weights (handle imbalance)
     weights_cls = None
