@@ -197,6 +197,7 @@ def main():
     ap.add_argument("--lambda_empty", type=float, default=0.05,
                     help="penalty for predicting positives on empty (no-M) images")
     ap.add_argument("--load", type=str, default=None, help="Path to pretrained checkpoint")
+    ap.add_argument("--freeze_backbone", action="store_true", help="Freeze ConvNeXt backbone")
 
     ap.add_argument("--save", type=str, default="exp/checkpoints/best_liaci_first_edit_val.pt")
     ap.add_argument("--mode", type=str, choices=["multitask", "sequential-A", "sequential-B"], default="multitask",
@@ -240,6 +241,14 @@ def main():
 
     # Model
     model = MultiHeadNet(backbone_name="convnext_tiny", n_cls=(2 if args.use_bin else 3)).to(device)
+
+
+    # 🔒 Backbone freeze (ConvNeXt 고정하고 Seg head만 학습)
+    for name, param in model.named_parameters():
+        if "backbone" in name:
+            param.requires_grad = False
+
+
     if torch.cuda.device_count() > 1:
         print(f"Using {torch.cuda.device_count()} GPUs!")
         model = torch.nn.DataParallel(model)
