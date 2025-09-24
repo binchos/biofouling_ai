@@ -26,8 +26,12 @@ model.eval().to(device)
 
 # Run
 
-for i, (img, mask_s, mask_m) in enumerate(dl):  # ✅ 수정
-    img = img.to(device)
+# Run
+for i, sample in enumerate(dl):
+    img = sample["image"].to(device)
+    mask_s = sample["S"]
+    mask_m = sample["M"]
+
     with torch.no_grad():
         out = model(img)
         logits_s = out["seg_s"]
@@ -36,6 +40,7 @@ for i, (img, mask_s, mask_m) in enumerate(dl):  # ✅ 수정
     prob_s = torch.sigmoid(logits_s)
     prob_m = torch.sigmoid(logits_m)
 
+    # Save
     save_image(img,      OUTDIR / f"{i:03d}_img.png")
     save_image(mask_s,   OUTDIR / f"{i:03d}_gtS.png")
     save_image(mask_m,   OUTDIR / f"{i:03d}_gtM.png")
