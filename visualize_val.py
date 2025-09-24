@@ -25,7 +25,8 @@ model.load_state_dict(ckpt["state_dict"])
 model.eval().to(device)
 
 # Run
-for i, (img, mask_s, mask_m, _) in enumerate(dl):
+
+for i, (img, mask_s, mask_m) in enumerate(dl):  # ✅ 수정
     img = img.to(device)
     with torch.no_grad():
         out = model(img)
@@ -35,7 +36,6 @@ for i, (img, mask_s, mask_m, _) in enumerate(dl):
     prob_s = torch.sigmoid(logits_s)
     prob_m = torch.sigmoid(logits_m)
 
-    # Save
     save_image(img,      OUTDIR / f"{i:03d}_img.png")
     save_image(mask_s,   OUTDIR / f"{i:03d}_gtS.png")
     save_image(mask_m,   OUTDIR / f"{i:03d}_gtM.png")
