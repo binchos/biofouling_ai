@@ -1,5 +1,3 @@
-# visualize_val.py
-
 import torch
 from pathlib import Path
 from dataio import LiaciDataset
@@ -15,7 +13,8 @@ OUTDIR.mkdir(parents=True, exist_ok=True)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Data
-ds = LiaciDataset(VAL_PATH, split="val", tfm=T.ToTensor(), size=(736,1280))
+# 🔧 tfm 인자가 아니라 transforms 내부에 이미 적용된 것으로 간주
+ds = LiaciDataset(VAL_PATH, split="val", size=(736, 1280))
 dl = torch.utils.data.DataLoader(ds, batch_size=1)
 
 # Model
