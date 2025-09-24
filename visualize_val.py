@@ -5,7 +5,8 @@ from model import MultiHeadNet
 from torchvision.utils import save_image
 from torchvision import transforms as T
 
-VAL_PATH = Path("/home/shared_project/data/kowp")
+VAL_PATH = Path("/home/shared_project/data/kowp/kowp_prepared")
+
 CKPT_PATH = Path("exp/checkpoints/kowp_finetune_unfrozen_ep100.pt")
 OUTDIR = Path("exp/vis_kowp_val_ep100")
 OUTDIR.mkdir(parents=True, exist_ok=True)
