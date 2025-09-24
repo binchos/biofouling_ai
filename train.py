@@ -198,7 +198,10 @@ def main():
                     help="penalty for predicting positives on empty (no-M) images")
     ap.add_argument("--load", type=str, default=None, help="Path to pretrained checkpoint")
     ap.add_argument("--freeze_backbone", action="store_true", help="Freeze ConvNeXt backbone")
-
+    ap.add_argument("--fig_root", type=str, default="/home/shared_project/data/figshare",
+                    help="Figshare dataset root (contains images/, labels.csv)")
+    ap.add_argument("--liaci_root", type=str, default="/home/shared_project/data/liaci",
+                    help="LIACI dataset root (contains images/, masks/, splits.csv)")
     ap.add_argument("--save", type=str, default="exp/checkpoints/best_liaci_first_edit_val.pt")
     ap.add_argument("--mode", type=str, choices=["multitask", "sequential-A", "sequential-B"], default="multitask",
                     help="multitask: Figshare+LIACI 교대 / sequential-A: Figshare만 / sequential-B: LIACI만")
@@ -223,8 +226,8 @@ def main():
     dl_fig_train = dl_fig_val = dl_liaci_train = dl_liaci_val = None
 
     if args.mode in ["multitask", "sequential-A"]:
-        fig_train = FigshareDataset(split="train", use_bin=args.use_bin, transform=tfm_train)
-        fig_val   = FigshareDataset(split="val",   use_bin=args.use_bin, transform=tfm_val)
+        fig_train = FigshareDataset(root=args.fig_root, split="train", use_bin=args.use_bin, transform=tfm_train)
+        fig_val = FigshareDataset(root=args.fig_root, split="val", use_bin=args.use_bin, transform=tfm_val)
         dl_fig_train = DataLoader(fig_train, batch_size=args.batch, shuffle=True,
                                   num_workers=args.num_workers, pin_memory=True)
         dl_fig_val   = DataLoader(fig_val,   batch_size=args.batch, shuffle=False,
@@ -232,8 +235,10 @@ def main():
 
     if args.mode in ["multitask", "sequential-B"]:
         # LIACi 입력 크기 = (H=736, W=1280)
-        liaci_train = LiaciDataset(split="train", transform=tfm_train, size=(736, 1280))
-        liaci_val   = LiaciDataset(split="val",   transform=tfm_val,   size=(736, 1280))
+        liaci_train = LiaciDataset(root=args.liaci_root, split="train", transform=tfm_train, size=(736, 1280),
+                                   strict=False)
+        liaci_val = LiaciDataset(root=args.liaci_root, split="val", transform=tfm_val, size=(736, 1280), strict=False)
+
         dl_liaci_train = DataLoader(liaci_train, batch_size=args.seg_batch, shuffle=True,
                                     num_workers=args.num_workers, pin_memory=True, collate_fn=collate_skip_none)
         dl_liaci_val   = DataLoader(liaci_val,   batch_size=args.seg_batch, shuffle=False,
@@ -244,9 +249,10 @@ def main():
 
 
     # 🔒 Backbone freeze (ConvNeXt 고정하고 Seg head만 학습)
-    for name, param in model.named_parameters():
-        if "backbone" in name:
-            param.requires_grad = False
+    if args.freeze_backbone:
+        for name, param in model.named_parameters():
+            if "backbone" in name:
+                param.requires_grad = False
 
 
     if torch.cuda.device_count() > 1:

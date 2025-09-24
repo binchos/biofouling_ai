@@ -104,7 +104,9 @@ class LiaciDataset(Dataset):
         s_path = self.masks_dir / f"{id_}_S.png"
         m_path = self.masks_dir / f"{id_}_M.png"
         if not s_path.exists() or not m_path.exists():
-            raise FileNotFoundError(f"Mask not found: {s_path} or {m_path}")
+            if self.strict:
+                raise FileNotFoundError(f"Mask not found: {s_path} or {m_path}")
+            return None  # strict=False면 collate_skip_none이 자동 드롭
 
         img = Image.open(img_path).convert("RGB")
         S_pil = Image.open(s_path).convert("L")
