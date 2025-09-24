@@ -34,8 +34,8 @@ for i, sample in enumerate(dl):
 
     with torch.no_grad():
         out = model(img)
-        logits_s = out["seg_s"]
-        logits_m = out["seg_m"]
+        logits_s = out["S"]
+        logits_m = out["M"]
 
     prob_s = torch.sigmoid(logits_s)
     prob_m = torch.sigmoid(logits_m)
