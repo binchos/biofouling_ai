@@ -39,6 +39,8 @@ for i, sample in enumerate(dl):
 
     prob_s = torch.sigmoid(logits_s)
     prob_m = torch.sigmoid(logits_m)
+    print(torch.equal(mask_s, mask_m))  # True면 문제 있음
+    print(mask_s.unique(), mask_m.unique())  # 값 분포도 확인
 
     # Save
     save_image(img,      OUTDIR / f"{i:03d}_img.png")
