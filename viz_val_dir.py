@@ -66,7 +66,7 @@ def main():
 
     os.makedirs(args.save_dir, exist_ok=True)
 
-    # 모델 로드
+    # ---------------- 모델 로드 ----------------
     device = "cuda" if torch.cuda.is_available() else "cpu"
     ckpt = torch.load(args.ckpt, map_location=device)
     model = MultiHeadNet(backbone_name="convnext_tiny", n_cls=2).to(device).eval()
@@ -74,16 +74,17 @@ def main():
     filtered = {k: v for k, v in state.items() if not k.startswith("cls_head")}
     model.load_state_dict(filtered, strict=False)
 
-    # splits.csv 읽기 → val 만 선택
+    # ---------------- splits.csv 읽기 → val만 ----------------
     val_list = []
     with open(split_csv) as f:
         reader = csv.DictReader(f)
         for row in reader:
             if row["split"] == "val":
-                val_list.append(row["filename"])  # filename 컬럼 가정
+                val_list.append(row["id"])  # id 컬럼 사용
 
     print(f"[viz] found {len(val_list)} val samples")
 
+    # ---------------- 루프 ----------------
     for stem in val_list:
         ip = img_dir / stem
         pil = Image.open(ip).convert("RGB")
