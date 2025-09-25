@@ -19,11 +19,6 @@ def to_tensor(img_pil):
     tfm = T.Compose([T.ToTensor(), T.Normalize(IMNET_MEAN, IMNET_STD)])
     return tfm(img_pil)
 
-def load_mask_if(path):
-    if path is None or not Path(path).exists(): return None
-    m = np.array(Image.open(path).convert("L"))
-    return (m>127).astype(np.uint8)
-
 def save_png01(arr01, path):
     Image.fromarray((arr01*255).astype(np.uint8)).save(path)
 
@@ -86,6 +81,13 @@ def find_masks(mask_dir, stem):
         if cand.exists(): return None, str(cand)
     return None, None
 
+def load_gt_letterboxed(p, H, W):
+    """GT 마스크를 모델 입력 크기와 동일하게 letterbox + 이진화"""
+    if p is None or not Path(p).exists(): return None
+    pil_gt = Image.open(p).convert("L")
+    pil_gt = letterbox(pil_gt, (H, W), fill=0, interp=InterpolationMode.NEAREST)
+    return (np.array(pil_gt) > 127).astype(np.uint8)
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--ckpt", required=True)
@@ -147,8 +149,8 @@ def main():
 
         stem = Path(ip).stem
         s_gt_path, m_gt_path = find_masks(msk_dir, stem)
-        S_gt = load_mask_if(s_gt_path)
-        M_gt = load_mask_if(m_gt_path)
+        S_gt = load_gt_letterboxed(s_gt_path, args.size_h, args.size_w)
+        M_gt = load_gt_letterboxed(m_gt_path, args.size_h, args.size_w)
 
         S_dice = dice_all(S_bin, S_gt)
         M_dice_all = dice_all(M_bin, M_gt)
