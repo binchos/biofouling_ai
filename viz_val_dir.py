@@ -78,7 +78,7 @@ def main():
         reader = csv.DictReader(f)
         for row in reader:
             if row["split"] == "val":
-                val_list.append(row["id"])  # 여기서 id 컬럼 사용
+                val_list.append(row["id"] + ".png")
 
     print(f"[viz] found {len(val_list)} val samples")
 
