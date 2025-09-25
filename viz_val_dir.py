@@ -5,7 +5,6 @@ from PIL import Image, ImageOps
 
 import torch
 from torchvision import transforms as T
-from torchvision.transforms import InterpolationMode
 
 from model import MultiHeadNet
 from dataio import letterbox  # 학습과 동일 전처리
@@ -61,7 +60,6 @@ def main():
 
     root = Path(args.data_root)
     img_dir = root/"images"
-    msk_dir = root/"masks"
     split_csv = root/"splits.csv"
 
     os.makedirs(args.save_dir, exist_ok=True)
@@ -80,13 +78,17 @@ def main():
         reader = csv.DictReader(f)
         for row in reader:
             if row["split"] == "val":
-                val_list.append(row["id"])  # id 컬럼 사용
+                val_list.append(row["id"])  # 여기서 id 컬럼 사용
 
     print(f"[viz] found {len(val_list)} val samples")
 
     # ---------------- 루프 ----------------
     for stem in val_list:
         ip = img_dir / stem
+        if not ip.exists():
+            print(f"[skip] not found: {ip}")
+            continue
+
         pil = Image.open(ip).convert("RGB")
         pil_in = letterbox(pil, (args.size_h, args.size_w))
         x = to_tensor(pil_in).unsqueeze(0).to(device)
