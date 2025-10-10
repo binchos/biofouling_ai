@@ -73,8 +73,9 @@ class LiaciDataset(Dataset):
       masks_raw/<id>_M.png
       splits.csv: id,split
     """
-    def __init__(self, root="data/liaci", split="train", transform=None, strict=True, size: Optional[Tuple[int,int]]=None):
+    def __init__(self, root="data/liaci", synth_root="data/synth_data", split="train", transform=None, strict=True, size: Optional[Tuple[int,int]]=None):
         self.root = Path(root)
+        self.synth_root = Path(synth_root)
         self.split = split
         self.meta = pd.read_csv(self.root / "splits.csv")
         self.meta = self.meta[self.meta["split"] == split].reset_index(drop=True)
@@ -84,25 +85,48 @@ class LiaciDataset(Dataset):
 
         self.img_dir = self.root / "images"
         self.masks_dir = self.root / "masks"
+        self.synth_img_dir = self.synth_root / "images"
+        self.synth_mask_dir = self.synth_root / "masks"
+        #원본 이미지 목록
+        self.orig_items = []
+        for id_ in meta["id"]:
+            self.orig_items.append({
+                "img": _find_first_with_stem(self.img_dir, id_),
+                "S": self.masks_dir / f"{id_}_S.png",
+                "M": self.masks_dir / f"{id_}_M.png"
+            })
+        #합성 이미지 목록
+        self.synth_items = []
+        if self.synth_img_dir.exists():
+            synth_imgs = sorted(glob.glob(str(self.synth_img_dir / "*.png")))
+            for img_path in synth_imgs:
+                id_ = Path(img_path).stem  # '00001' from '00001.png'
+                self.synth_items.append({
+                    "img": Path(img_path),
+                    "S": self.synth_mask_dir / f"{id_}_S.png",
+                    "M": self.synth_mask_dir / f"{id_}_M.png"
+                })
+
+        #병합
+        self.items = self.orig_items + self.synth_items
+        print(f"[LiaciDataset] Loaded {len(self.orig_items)} original + {len(self.synth_items)} synth = {len(self.items)} total samples")
+
         assert self.img_dir.exists(), f"Not found: {self.img_dir}"
         assert self.masks_dir.exists(), f"Not found: {self.masks_dir}"
 
     def __len__(self):
-        return len(self.meta)
+        return len(self.items)
 
     def __getitem__(self, idx):
-        id_ = self.meta.iloc[idx]["id"]
+        paths = self.items[idx]
+        img_path, s_path, m_path = paths["img"], paths["S"], paths["M"]
 
-
-        img_path = _find_first_with_stem(self.img_dir, id_)
         if img_path is None:
             if self.strict:
                 raise FileNotFoundError(f"Image not found for id={id_} in {self.img_dir}")
 
             img_path = list(self.img_dir.glob(f"{id_}.*"))[0]
 
-        s_path = self.masks_dir / f"{id_}_S.png"
-        m_path = self.masks_dir / f"{id_}_M.png"
         if not s_path.exists() or not m_path.exists():
             raise FileNotFoundError(f"Mask not found: {s_path} or {m_path}")
 
