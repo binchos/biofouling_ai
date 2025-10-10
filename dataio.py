@@ -98,7 +98,7 @@ class LiaciDataset(Dataset):
             })
         #합성 이미지 목록
         self.synth_items = []
-        if self.synth_img_dir.exists():
+        if split == "train" and self.synth_img_dir.exists():
             synth_imgs = sorted(glob.glob(str(self.synth_img_dir / "*.png")))
             for img_path in synth_imgs:
                 id_ = Path(img_path).stem  # '00001' from '00001.png'
@@ -107,6 +107,8 @@ class LiaciDataset(Dataset):
                     "S": self.synth_mask_dir / f"{id_}_S.png",
                     "M": self.synth_mask_dir / f"{id_}_M.png"
                 })
+        else:
+            self.synth_items = []
 
         #병합
         self.items = self.orig_items + self.synth_items
