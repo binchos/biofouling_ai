@@ -89,7 +89,7 @@ class LiaciDataset(Dataset):
         self.synth_mask_dir = self.synth_root / "masks"
         #원본 이미지 목록
         self.orig_items = []
-        for id_ in meta["id"]:
+        for id_ in self.meta["id"]:
             self.orig_items.append({
                 "img": _find_first_with_stem(self.img_dir, id_),
                 "S": self.masks_dir / f"{id_}_S.png",
