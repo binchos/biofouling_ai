@@ -59,8 +59,8 @@ def main():
     args = ap.parse_args()
 
     root = Path(args.data_root)
-    img_dir = root/"images"
-    split_csv = root/"splits.csv"
+    img_dir = root/"images_50"
+    split_csv = root/"splits_50.csv"
 
     os.makedirs(args.save_dir, exist_ok=True)
 
