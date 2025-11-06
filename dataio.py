@@ -73,17 +73,17 @@ class LiaciDataset(Dataset):
       masks_raw/<id>_M.png
       splits.csv: id,split
     """
-    def __init__(self, root="data/liaci", split="train", transform=None, strict=True, size: Optional[Tuple[int,int]]=None):
+    def __init__(self, root="kowp/kowp_prepared", split="train", transform=None, strict=True, size: Optional[Tuple[int,int]]=None):
         self.root = Path(root)
         self.split = split
-        self.meta = pd.read_csv(self.root / "splits.csv")
+        self.meta = pd.read_csv(self.root / "splits_50.csv")
         self.meta = self.meta[self.meta["split"] == split].reset_index(drop=True)
         self.transform = transform
         self.strict = strict
         self.size = size
 
-        self.img_dir = self.root / "images"
-        self.masks_dir = self.root / "masks"
+        self.img_dir = self.root / "images_50"
+        self.masks_dir = self.root / "masks_50"
         assert self.img_dir.exists(), f"Not found: {self.img_dir}"
         assert self.masks_dir.exists(), f"Not found: {self.masks_dir}"
 
