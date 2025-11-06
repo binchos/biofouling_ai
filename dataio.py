@@ -73,7 +73,7 @@ class LiaciDataset(Dataset):
       masks_raw/<id>_M.png
       splits.csv: id,split
     """
-    def __init__(self, root="data/liaci", split="train", transform=None, strict=True, size: Optional[Tuple[int,int]]=None):
+    def __init__(self, root="/home/shared_project/biofouling_ai/data/kowp/kowp_prepared", split="train", transform=None, strict=True, size: Optional[Tuple[int,int]]=None):
         self.root = Path(root)
         self.split = split
         self.meta = pd.read_csv(self.root / "splits_50.csv")
