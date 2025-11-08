@@ -8,7 +8,7 @@ import io
 import numpy as np
 from model import MultiHeadNet
 from torchvision import transforms as T
-
+from pathlib import Path
 app = FastAPI()
 
 app.add_middleware(
@@ -22,7 +22,8 @@ app.add_middleware(
 #  모델 로드
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model = MultiHeadNet(backbone_name="convnext_tiny", n_cls=3)
-ckpt = torch.load("kowp_finetune_data_50_edit.pt", map_location=device)
+WEIGHT_PATH = Path(r"C:\Users\chsobn0710\Desktop\bio\kowp_finetune_data_50_edit.pt")
+ckpt = torch.load(WEIGHT_PATH, map_location=device)
 state = ckpt["state_dict"] if "state_dict" in ckpt else ckpt
 model.load_state_dict(state, strict=False)
 model.eval().to(device)
