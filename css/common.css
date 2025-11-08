@@ -55,3 +55,11 @@ h1 {
   background-color: #007bff;
   color: white;
 }
+.top-controls button.active {
+  background-color: #007bff;  /* 파란색 배경 */
+  color: white;
+  font-weight: 600;
+  border: none;
+
+  transform: scale(1.05);
+}

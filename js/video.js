@@ -433,6 +433,17 @@ function navigateTo(page) {
 
 // ✅ 페이지 로드 시 자동 생성
 window.addEventListener('load', () => {
+  const currentPage = window.location.pathname;
+const imgBtn = document.getElementById('img-mode');
+const vidBtn = document.getElementById('video-mode');
+
+if (currentPage.includes('image')) {
+  imgBtn.classList.add('active');
+  vidBtn.classList.remove('active');
+} else if (currentPage.includes('video')) {
+  vidBtn.classList.add('active');
+  imgBtn.classList.remove('active');
+}
   frames.forEach(f => addFrameSet(f.original, f.mseg, f.sseg));
   //이미지 영상 버튼
    document.getElementById('img-mode').addEventListener('click', () => {

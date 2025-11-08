@@ -115,6 +115,18 @@ function navigateTo(page) {
 
 window.addEventListener('load', () => {
 
+const currentPage = window.location.pathname;
+const imgBtn = document.getElementById('img-mode');
+const vidBtn = document.getElementById('video-mode');
+
+if (currentPage.includes('image')) {
+  imgBtn.classList.add('active');
+  vidBtn.classList.remove('active');
+} else if (currentPage.includes('video')) {
+  vidBtn.classList.add('active');
+  imgBtn.classList.remove('active');
+}
+
   drawDonutChart(0);
   document.querySelector(".s-fill").style.width = "0%";
   document.querySelector(".s-fill .percent-text").textContent = "0%";
