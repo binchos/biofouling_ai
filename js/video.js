@@ -166,16 +166,29 @@ function toggleDeleteMode() {
     deleteButton.textContent = isActive ? '취소' : '삭제';
   }
 }
-//프레임 삭제 함수
+
 function deleteFrame(event) {
-  // ✅ 삭제 버튼 내부 어떤 걸 클릭하든 상관없이 버튼 자체로 인식되도록
+
   const closeBtn = event.target.closest('.frame-close');
   if (closeBtn) {
-    event.stopPropagation();   // ✅ 프레임 클릭 이벤트 막기 (이게 핵심)
+    event.stopPropagation();
     const frame = closeBtn.closest('.frame');
-    if (frame) frame.remove();
 
-    // ✅ 모든 프레임 삭제 시 자동으로 버튼/모드 초기화
+    if (frame) {
+
+      const allFrames = Array.from(document.querySelectorAll('.frame'));
+      const index = allFrames.indexOf(frame);
+
+
+      if (index !== -1 && framesData.length > index) {
+        framesData.splice(index, 1);
+      }
+
+
+      frame.remove();
+    }
+
+
     const remainingFrames = document.querySelectorAll('.frame').length;
     const deleteButton = document.querySelector('.delete');
 
@@ -183,13 +196,14 @@ function deleteFrame(event) {
       deleteButton.classList.remove('active');
       deleteButton.textContent = '삭제';
 
-      // 모든 show-close 제거 (혹시 남아있을 수도 있음)
+
       document.querySelectorAll('.frame').forEach(f => {
         f.classList.remove('show-close');
       });
     }
   }
 }
+
 //삭제 버튼 이벤트 연결 함수
 function setupDeleteFeature() {
   const deleteButton = document.querySelector('.delete');
@@ -303,12 +317,20 @@ function setupAllDeleteModal({
     modal.style.display = 'flex';
   });
 
-  confirmBtn.addEventListener('click', () => {
-    targetContainer.innerHTML = '';
-    modal.style.display = 'none';
-  });
+ confirmBtn.addEventListener('click', () => {
 
-  // 취소 버튼: 모달 닫기
+  targetContainer.innerHTML = '';
+
+
+  framesData = [];
+
+
+  modal.style.display = 'none';
+
+  console.log("✅ 모든 프레임 및 데이터 삭제 완료");
+});
+
+
   cancelBtn.addEventListener('click', () => {
     modal.style.display = 'none';
   });
