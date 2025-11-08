@@ -1,6 +1,10 @@
+let donutChart = null;
+
+
+
 function drawDonutChart(percent, elementId = 'doughnutChart') {
   const ctx = document.getElementById(elementId).getContext('2d');
-
+  if (donutChart) donutChart.destroy();
   const centerTextPlugin = {
     id: 'centerText',
     beforeDraw: (chart) => {
@@ -20,7 +24,7 @@ function drawDonutChart(percent, elementId = 'doughnutChart') {
     }
   };
 
-  new Chart(ctx, {
+  donutChart=new Chart(ctx, {
     type: 'doughnut',
     data: {
       labels: ['채워진 영역', '남은 영역'],
@@ -37,6 +41,43 @@ function drawDonutChart(percent, elementId = 'doughnutChart') {
     },
     plugins: [centerTextPlugin]
   });
+}
+
+
+async function sendImageToServer(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const response = await fetch("http://127.0.0.1:8000/predict", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) throw new Error("서버 요청 실패");
+    const result = await response.json();
+    console.log("✅ 서버 응답:", result);
+
+    // 1. S_area, M_area: 전체 이미지 대비 (%)
+    const sPercent = result.S_area;
+    const mPercent = result.M_area;
+
+    // 2. 구조물 대비 부착생물 비율
+    const structureRatio = sPercent > 0 ? Math.round((mPercent / sPercent) * 100) : 0;
+
+    // 3. 도넛 (구조물 대비 부착비율)
+    drawDonutChart(structureRatio);
+
+    // 4. 막대 그래프 (전체 대비)
+   document.querySelector(".s-fill").style.width = `${sPercent}%`;
+document.querySelector(".s-fill .percent-text").textContent = `${Math.round(sPercent)}%`;
+
+document.querySelector(".m-fill").style.width = `${mPercent}%`;
+document.querySelector(".m-fill .percent-text").textContent = `${Math.round(mPercent)}%`;
+
+  } catch (error) {
+    console.error("🚨 예측 요청 실패:", error);
+  }
 }
 
 
@@ -59,6 +100,7 @@ function handleImageUpload(inputId, previewBoxId) {
       previewBox.appendChild(img);
     };
     reader.readAsDataURL(file);
+
   });
 }
 
@@ -78,5 +120,19 @@ window.addEventListener('load', () => {
   document.getElementById('video-mode').addEventListener('click', () => {
     navigateTo('video.html');
   });
+ document.querySelector(".analyze").addEventListener("click", async () => {
+    const fileInput = document.getElementById("fileInput");
+    const file = fileInput.files[0];
+    if (!file) {
+      alert("이미지를 먼저 업로드해주세요!");
+      return;
+    }
+    console.log("🔍 분석 시작: 서버에 요청 중...");
+    await sendImageToServer(file);
+  });
+
+
+
+
 });
 
