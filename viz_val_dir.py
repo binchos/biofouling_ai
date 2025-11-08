@@ -60,7 +60,7 @@ def main():
 
     root = Path(args.data_root)
     img_dir = root/"images"
-    split_csv = root/"splits_26.csv"
+    split_csv = root/"splits.csv"
 
     os.makedirs(args.save_dir, exist_ok=True)
 
