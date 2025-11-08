@@ -1,0 +1,57 @@
+html, body {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f8f9fb;
+  display: flex;
+  justify-content: center;
+  align-items: stretch; /* ✅ 컨테이너를 세로로 꽉 채움 */
+}
+
+/* 제목 */
+h1 {
+  text-align: center;
+  color: #222;
+  margin-bottom: 20px;
+}
+
+.container {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  /* ✅ 버튼의 절대 위치 기준을 container로 제한 */
+}
+
+/* ✅ 이미지, 영상 버튼 */
+.top-controls {
+  position: absolute;
+  top: 45px;              /* 버튼의 수직 위치 (영상 위나 중앙 조정 가능) */
+  left: 50%;              /* 화면의 정확한 중앙선 기준 */
+  transform: translateX(-100%); /* ✅ 중앙선에서 왼쪽 방향으로 이동 = 왼쪽 영역의 끝 */
+  display: flex;
+  justify-content: flex-end; /* ✅ 왼쪽 영역 안에서 오른쪽 정렬 */
+  gap: 10px;
+  width: 50%;
+  z-index: 10;               /* 🔸 다른 요소에 가려지지 않도록 */
+  pointer-events: auto;
+}
+
+.top-controls button {
+  background-color: #e9ecef;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.2s;
+}
+
+.top-controls button:hover {
+  background-color: #007bff;
+  color: white;
+}

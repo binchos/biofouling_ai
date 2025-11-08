@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>부착 생물 탐지 Segmentation Viewer</title>
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/image/image.css">
+  <link rel="stylesheet" href="css/image/image_analyze.css">
+  <link rel="stylesheet" href="css/image/image_box.css">
+  <link rel="stylesheet" href="css/image/image_button.css">
+  <script src="js/image.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>부착 생물 탐지 Segmentation</h1>
+    <div class="container2">
+
+      <!-- 🔘 상단 이미지/영상 모드 버튼 -->
+      <div class="top-controls">
+        <button id="img-mode">이미지</button>
+        <button id="video-mode">영상</button>
+      </div>
+
+      <!-- 메인 2열 레이아웃 -->
+      <div class="main-layout">
+
+        <!-- 🔵 왼쪽: 이미지 업로드 및 세그멘테이션 -->
+        <div class="left-column">
+
+          <!-- 원본 이미지 박스 + 업로드 버튼 -->
+          <div class="image-box">
+            <div class="image-placeholder" id="previewBox">원본 이미지 박스</div>
+            <div class="upload-container">
+              <input type="file" id="fileInput" accept="image/*">
+            </div>
+          </div>
+
+          <!-- Segmentation 박스 -->
+          <div class="seg-box-container">
+            <div class="seg-box">M seg 박스</div>
+            <div class="seg-box">S seg 박스</div>
+          </div>
+        </div>
+
+        <!-- 🟠 오른쪽: 분석 정보 -->
+        <div class="right-column">
+          <h2>구조물 대비 부착생물 면적%</h2>
+          <div class="circle-graph">
+            <!-- 원형 그래프 영역 -->
+            <canvas id="doughnutChart" width="250" height="250"></canvas>
+          </div>
+          <div class="percentages">
+            <div class="bar-set">
+              <span class="bar-label">S 면적</span>
+              <div class="bar">
+                <div class="fill s-fill" style="width: 20%;">
+                  <span class="percent-text">20%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="bar-set">
+              <span class="bar-label">M 면적</span>
+              <div class="bar">
+                <div class="fill m-fill" style="width: 80%;">
+                  <span class="percent-text">80%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button class="analyze">분석</button>
+        </div>
+
+      </div> <!-- .main-layout -->
+
+    </div> <!-- .container2 -->
+  </div> <!-- .container -->
+</body>
+</html>

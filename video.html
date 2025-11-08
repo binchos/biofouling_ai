@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>부착 생물 탐지 Segmentation Viewer</title>
+  <link rel="stylesheet" href="css/video/video_button.css">
+  <link rel="stylesheet" href="css/video/frame.css">
+  <link rel="stylesheet" href="css/video/modal.css">
+  <link rel="stylesheet" href="css/video/video.css">
+  <link rel="stylesheet" href="css/common.css">
+</head>
+<body>
+  <div class="container">
+    <h1>부착 생물 탐지 Segmentation</h1>
+    <div class="container2">
+      <!-- ✅ 영상 모드 선택 버튼 (비디오 우측 상단 위) -->
+      <div class="top-controls">
+        <button id="img-mode">이미지</button>
+        <button id="video-mode">영상</button>
+      </div>
+  <!-- ✅ 영상 -->
+      <div class="video-container">
+        <video id="preview" controls>
+          <source src="" type="">
+        </video>
+        <!-- ✅ 파일 업로드 & 제어 버튼 -->
+        <div class="controls">
+          <button class="start">시작</button>
+          <button class="stop">정지</button>
+        </div>
+      </div>
+
+  <!-- ✅ Frame Predictions + 파일 업로드 버튼 같은 줄 -->
+      <div class="frame-header">
+        <h2>프레임 예측</h2>
+        <div class="file-upload">
+          <input type="file" id="fileInput" accept="video/*">
+        </div>
+
+        <div class="right-buttons">
+          <button class="delete">삭제</button>
+          <button class="all_delete">전체 삭제</button>
+        </div>
+        <!-- 삭제 확인 모달 -->
+        <div id="deleteModal" class="delete-modal">
+          <div class="delete-modal-content">
+            <p>전체 삭제하시겠습니까?</p>
+            <div class="delete-modal-buttons">
+              <button id="confirmDelete">확인</button>
+              <button id="cancelDelete">취소</button>
+            </div>
+          </div>
+        </div>
+      </div>
+        <!-- ✅ 스크롤 가능한 프레임 리스트 -->
+      <div class="frames">
+        <!-- 프레임 1개 예시 -->
+      </div>
+      <div class="analyze_wrapper">
+        <button class="analyze">최종분석</button>
+      </div>
+    </div> <!-- frame-section -->
+  </div> <!-- container -->
+  <!--frame 클릭 시 분석 모달 창-->
+  <div id="frameModal" class="frame-modal">
+    <div class="frame-modal-content">
+      <!-- ✅ 닫기 버튼 우측 상단에 배치 -->
+      <button id="modalClose" class="frame-modal-close">×</button>
+      <!-- 좌측: 이미지 -->
+      <div class="frame-modal-left">
+        <img id="frame-modalPreviewImage" src="" alt="원본 프레임">
+      </div>
+      <!-- 우측: 분석 내용 -->
+      <div class="frame-modal-right">
+        <h3>구조물 대비 부착생물 면적%</h3>
+        <canvas id="modalPieChart" width="180" height="180"></canvas>
+        <p>S 면적: <span id="modalSValue">--</span>%</p>
+        <p>M 면적: <span id="modalMValue">--</span>%</p>
+      </div>
+    </div>
+  </div>
+  <!--최종 분석 클릭 시 분석 모달-->
+  <div id="finalanalyzeModal" class="frame-modal">
+    <div class="finalanalyze-modal-content">
+      <button id="finalanalyzeModalClose" class="finalanalyze-modal-close">x</button>
+      <div class="finalanalyze-modal-left">
+        <h4>평균 면적</h4>
+        <div class="circle-graph">
+          <canvas id="modalPieChart2" width="180" height="180"></canvas>
+        </div>
+      </div>
+      <div class="finalanalyze-modal-right">
+        <canvas id="modalGraph" width="200" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+  <script src="js/video.js"></script>
+</body>
+</html>

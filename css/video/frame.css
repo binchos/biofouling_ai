@@ -1,0 +1,109 @@
+/* 프레임 예측(프레임 헤더) */
+.frame-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-left: 0.5%;
+  margin-top: 3px;
+}
+.frame-header h2 {
+  font-size: 20px;
+  font-weight: bold;
+  margin-left: 0.5%;
+  color: #222;
+}
+
+
+
+/* frames안에 frame이 쌓임 */
+.frames {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 25px;
+  overflow-y: visible;
+  border: 1px solid #ccc;
+  padding: 15px;
+  border-radius: 8px;
+  flex: 1;                        /* ✅ 남은 공간 모두 차지 */
+  min-height: 315px;
+}
+
+
+
+/* frame */
+.frame {
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  padding: 11px;
+  position: relative;
+  width: 405px;
+  height: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.1s ease-in-out;
+}
+.frame:active {
+  transform: scale(0.98);
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.3);
+  background-color: #e0e0e0;
+}
+.frame:hover {
+  transform: scale(1.015);  /* 살짝 커짐 */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);  /* 그림자 강조 */
+  background-color: #f1f5ff;  /* 배경 살짝 파랗게 */
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+
+
+/* 삭제 모드 시 frame의 삭제 버튼 */
+.frame-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 16px;
+  text-align: center;
+  cursor: pointer;
+  display: none; /* ✅ 기본은 안 보이게 */
+  /* 텍스트 정중앙 정렬 */
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+}
+.frame.show-close .frame-close {
+  display: block;
+}
+
+
+
+/* frame에 올라가는 이미지에 관한 것 */
+.frame-original-row img {
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+.frame-seg-row {
+  display: flex;
+  gap: 10px;
+}
+.seg-box {
+  text-align: center;
+}
+.seg-box img {
+  width: 130px;
+  border-radius: 8px;
+}
+.frame-label {
+  font-size: 13px;
+  margin-top: 5px;
+  color: #444;
+}

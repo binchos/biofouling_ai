@@ -1,0 +1,53 @@
+/* 원형 그래프 */
+.circle-graph {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+}
+
+
+
+/* 프로그래스 바 */
+.percentages {
+  margin-top: 100px;
+  width: 100%;
+  max-width: 850px;
+  font-family: 'Arial', sans-serif;
+}
+.bar-set {
+  margin-bottom: 60px;
+}
+.bar-label {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  display: block;
+}
+.bar {
+  background-color: #e9ecef;
+  border-radius: 8px;
+  height: 50px; /* ✅ 높이 키움 */
+  overflow: hidden;
+  position: relative;
+}
+.fill {
+  height: 100%;
+  border-radius: 8px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* 텍스트를 우측 끝에 붙일지 가운데로 바꿀 수 있음 */
+  padding-right: 10px;
+  color: white;
+  font-weight: bold;
+}
+.s-fill {
+  background-color: #6c757d; /* 회색 */
+}
+.m-fill {
+  background-color: #007bff; /* 파랑 */
+}
+.percent-text {
+  font-size: 14px;
+}

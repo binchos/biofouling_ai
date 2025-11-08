@@ -1,0 +1,130 @@
+/*삭제 관련 모달*/
+.delete-modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0; top:0;
+  width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.4);
+
+  justify-content: center;
+  align-items: center;
+}
+.delete-modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 350px;
+  height: 200px;
+  font-size: 20px;
+  /* ✅ 내용 가운데 정렬 */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  text-align: center;
+}
+.delete-modal-buttons button {
+  padding: 14px 28px;      /* 버튼 크기 키움 */
+  font-size: 16px;         /* 글자 크기 키움 */
+  min-width: 120px;        /* 버튼 너비 확보 */
+}
+.delete-modal-buttons {
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+
+
+/*frame 관련 모달*/
+.frame-modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.frame-modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  width: 600px;
+  display: flex;
+  gap: 30px;
+  align-items: center;
+  position: relative;
+}
+.frame-modal-left img {
+  max-width: 220px;
+  border-radius: 8px;
+}
+.frame-modal-right {
+  flex: 1;
+  text-align: center;
+}
+.frame-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #666;
+  cursor: pointer;
+  z-index: 10;
+}
+.frame-modal-close:hover {
+  color: #000;
+  transform: scale(1.2);
+}
+#modalPieChart {
+  margin-top: 10px;
+}
+
+
+
+/*analyze(최종 분석) 관련 모달*/
+.finalanalyze-modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  width: 600px;
+  height: 350px;
+  display: flex;
+  gap: 30px;
+  align-items: center;
+  position: relative;
+}
+.finalanalyze-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #666;
+  cursor: pointer;
+}
+.finalanalyze-modal-close:hover {
+  color: #000;
+  transform: scale(1.2);
+}
+.finalanalyze-modal-left,
+.finalanalyze-modal-right {
+  flex: 1;
+  text-align: center;
+}
+#confirmDelete:hover {
+  background-color: #e0e0e0; /* 밝은 회색 계열 */
+  transform: scale(1.05);
+}
+#cancelDelete:hover {
+  background-color: #e0e0e0;
+  transform: scale(1.05);
+}

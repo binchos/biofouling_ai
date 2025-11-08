@@ -1,0 +1,45 @@
+/* 업로드 버튼 */
+.upload-container {
+  position: absolute;
+  bottom: -43px;    /* 아래에서 20px 떨어짐 */
+  right: -3px;     /* 오른쪽에서 20px 떨어짐 */
+  z-index: 10;     /* 다른 요소보다 위에 표시 */
+  margin-top: 3px;
+}
+.upload-container input[type="file"] {
+  background-color: rgba(255,255,255,0.9);
+  border: 1px solid #ccc;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+.upload-container input[type="file"]:hover {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+
+
+/* 분석 버튼 */
+.analyze {
+  position: absolute;   /* right-column 기준으로 배치 */
+  right: 30px;
+  bottom: 20px;
+
+  padding: 12px 28px;
+  background-color: #17a2b8;
+  color: white;
+  font-size: 16px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+.analyze:hover {
+  background-color: #138496;
+  transform: scale(1.05);   /* 살짝 확대 */
+}

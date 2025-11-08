@@ -1,0 +1,30 @@
+.container2 {
+  width: 95vw;
+  min-height: 95vh;
+  overflow: visible;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  position: relative;
+}
+
+/* ✅ 영상 영역 */
+.video-container {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 70px;
+  padding-left: 0.5%;
+  position: relative;
+}
+
+/* ✅ 비디오 스타일 */
+#preview {
+  width: 50%;              /* 부모(.video-container)의 100% = 50% of container */
+  height: 35vh;
+  border-radius: 10px;
+  background-color: #000;
+  display: block;
+}

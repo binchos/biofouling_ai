@@ -1,0 +1,120 @@
+/* 버튼 */
+button {
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+
+
+/* 파일 업로드 버튼 */
+.file-upload {
+  position: absolute;
+  left: 50%;              /* 화면의 정확한 중앙선 기준 */
+  transform: translateX(-100%); /* ✅ 중앙선에서 왼쪽 방향으로 이동 = 왼쪽 영역의 끝 */
+  display: flex;
+  justify-content: flex-end;
+  width: 50%;
+  margin-top: 3px;
+}
+
+.file-upload input[type="file"] {
+  background-color: rgba(255,255,255,0.9);
+  border: 1px solid #ccc;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.file-upload input[type="file"]:hover {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+
+
+/* 삭제/전체 삭제 버튼 */
+.right-buttons {
+  display: flex;
+  gap: 10px;
+}
+.delete {
+  margin-left: auto; /* 🔥 오른쪽 끝으로 밀기 */
+  background-color: #dc3545;
+  color: white;
+  transition: background-color 0.3s;
+}
+.delete.active {
+  background-color: #e55353;
+}
+.delete:hover {
+  background-color: #c82333; /* 더 진한 빨강 */
+  transform: scale(1.05);
+  transition: all 0.2s ease;
+}
+.all_delete {
+  margin-left: auto;
+  background-color: #000;
+  color: #ff4d4f;
+}
+.all_delete:hover {
+  background-color: #333;
+  transform: scale(1.05);
+  transition: all 0.2s ease;
+}
+
+
+
+/* 시작/정지 버튼 */
+.controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 10px;
+}
+.start {
+  background-color: #007bff;
+  color: white;
+}
+.start:hover {
+  background-color: #0056b3; /* 조금 더 진한 파란색 */
+  transform: scale(1.05);    /* 살짝 커지는 효과 */
+  transition: all 0.2s ease;
+}
+.stop {
+  background-color: #6c757d;
+  color: white;
+}
+.stop:hover {
+  background-color: #5a6268; /* 더 진한 회색 */
+  transform: scale(1.05);
+  transition: all 0.2s ease;
+}
+
+
+
+/* 최종 분석 버튼 */
+.analyze{
+  margin-top: 10px;
+  right: 20px;   /* 우측 여백 */
+  bottom: 20px;  /* 하단 여백 */
+  background-color: #17a2b8;
+  color: white;
+}
+.analyze:hover{
+  background-color: #218838;
+  transform: scale(1.05);    /* 살짝 커지는 효과 */
+  transition: all 0.2s ease;
+}
+/* 최종 분석 버튼 위치*/
+.analyze_wrapper{
+  margin-top: 20px;          /* frames 아래 간격 */
+  padding-right: 20px;       /* 오른쪽 정렬 여백 */
+  text-align: right;
+}

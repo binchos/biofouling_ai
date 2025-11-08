@@ -1,0 +1,40 @@
+.container2 {
+  width: 95vw;
+  min-height: 85vh;
+  overflow: visible;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  position: relative;
+}
+
+.main-layout {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 30px;
+}
+
+/*왼쪽 영역*/
+.left-column {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 50vw;
+}
+/*오른쪽 영역*/
+.right-column {
+  position: relative;
+  width: 50%;
+}
+.right-column h2 {
+  text-align: center;      /* ✅ 글자를 가운데 정렬 */
+  margin-top: 20px;        /* ✅ 위쪽 여백 (필요시 조절) */
+  margin-bottom: 30px;     /* ✅ 아래쪽 여백 */
+  font-size: 22px;         /* 선택: 글자 크기 조절 */
+  font-weight: bold;       /* 선택: 강조 */
+}
+

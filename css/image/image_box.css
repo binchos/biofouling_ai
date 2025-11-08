@@ -1,0 +1,52 @@
+/* 원본 이미지 박스 */
+.image-box {
+  width: 100%;
+  height: 350px;
+  background-color: #f2f2f2;
+  border: 2px dashed #ccc;
+  border-radius: 10px;
+  position: relative;
+  margin-top: 40px;
+}
+.image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;  /* 가로 정렬 */
+  align-items: center;
+  color: #aaa;
+  font-size: 18px;
+  text-align: center;
+}
+.image-placeholder img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+
+
+/* Segmentation 박스 */
+.seg-box-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+}
+.seg-box {
+  width: 50%;
+  height: 345px;
+  background-color: #f2f2f2;
+  border: 2px dashed #ccc;
+  border-radius: 10px;
+
+  display: flex;
+  justify-content: center;   /* 가로 가운데 정렬 */
+  align-items: center;
+
+  color: #aaa;
+  font-weight: 500;
+  font-size: 18px;
+  margin-top: 30px;
+}
