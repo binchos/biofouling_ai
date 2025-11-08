@@ -6,12 +6,18 @@ let framesData = [];
 const framesContainer = document.querySelector('.frames');
 const frames = [];
 
-// ✅ 프레임 하나를 추가하는 함수
+
 function addFrameSet(originalSrc, mSegSrc, sSegSrc) {
   const frameDiv = document.createElement('div');
   frameDiv.classList.add('frame');
 
-  // 1️⃣ 원본 이미지 행
+
+  const closeBtn = document.createElement('button');
+  closeBtn.classList.add('frame-close');
+  closeBtn.textContent = '×';
+  frameDiv.appendChild(closeBtn);
+
+  // 원본 이미지 행
   const originalRow = document.createElement('div');
   originalRow.classList.add('frame-original-row');
   const originalImg = document.createElement('img');
@@ -19,7 +25,7 @@ function addFrameSet(originalSrc, mSegSrc, sSegSrc) {
   originalImg.classList.add('frame-original');
   originalRow.appendChild(originalImg);
 
-  // 2️⃣ M seg / S seg 행
+  // M seg / S seg 행
   const segRow = document.createElement('div');
   segRow.classList.add('frame-seg-row');
 
@@ -55,13 +61,17 @@ function addFrameSet(originalSrc, mSegSrc, sSegSrc) {
   frameDiv.appendChild(originalRow);
   frameDiv.appendChild(segRow);
 
-  // ✅ 클릭 시 선택/해제 토글
-  frameDiv.addEventListener('click', () => {
-    frameDiv.classList.toggle('selected');
+
+  frameDiv.addEventListener('click', (e) => {
+    const deleteActive = document.querySelector('.delete')?.classList.contains('active');
+    if (deleteActive) return; // 삭제 모드일 때는 무시
+    if (e.target.closest('.frame-close')) return; // X버튼 클릭시 무시
+    openframeModal(frameDiv);
   });
 
   framesContainer.appendChild(frameDiv);
 }
+
 
 //영상 업로드 함수
 function handleVideoUpload(event) {
@@ -79,7 +89,7 @@ function handleVideoUpload(event) {
   // source에 경로 지정 + 타입 설정
   sourceTag.src = videoURL;
   sourceTag.type = file.type;
-  videoPreview.load(); // 새 소스 로드
+  videoPreview.load();
 }
 
 //영상 재생 함수
@@ -219,6 +229,7 @@ function stopExtractFrames(){
 }
 
 //현재 프레임을 캡처하는 로직(blob + 메타 데이터 저장)
+// 현재 프레임을 캡처 + 서버에 보내서 세그 결과 추가
 function captureCurrentFrame(videoElement, time) {
   const canvas = document.createElement('canvas');
   canvas.width = videoElement.videoWidth;
@@ -227,16 +238,41 @@ function captureCurrentFrame(videoElement, time) {
   const ctx = canvas.getContext('2d');
   ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
 
-  canvas.toBlob(blob => {
+  canvas.toBlob(async blob => {
     const frameURL = URL.createObjectURL(blob);
-    addFrame(frameURL); // DOM에 렌더링
-    framesData.push({
-      id: `frame_${framesData.length}`,
-      timestamp: time.toFixed(2),
-      blob: blob
-    });
-  }, 'image/jpeg');
+
+    // ✅ 서버로 프레임 전송
+    const formData = new FormData();
+    formData.append("file", blob);
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/predict", {
+        method: "POST",
+        body: formData
+      });
+      if (!response.ok) throw new Error("서버 예측 실패");
+      const result = await response.json();
+
+      // ✅ 세그 이미지(Base64)
+      const mSegSrc = result.M_mask;
+      const sSegSrc = result.S_mask;
+
+      // ✅ 프레임을 DOM에 추가
+      addFrameSet(frameURL, mSegSrc, sSegSrc);
+
+      framesData.push({
+        id: `frame_${framesData.length}`,
+        timestamp: time.toFixed(2),
+        blob: blob,
+        S_area: result.S_area,
+        M_area: result.M_area
+      });
+    } catch (err) {
+      console.error("❌ 프레임 분석 실패:", err);
+    }
+  }, "image/jpeg");
 }
+
 
 //전체 삭제 버튼 클릭시 모달 창 활성화 함수
 function setupAllDeleteModal({
