@@ -6,7 +6,7 @@ let framesData = [];
 const framesContainer = document.querySelector('.frames');
 const frames = [];
 
-
+let modalChart = null;
 function addFrameSet(originalSrc, mSegSrc, sSegSrc) {
   const frameDiv = document.createElement('div');
   frameDiv.classList.add('frame');
@@ -315,20 +315,78 @@ function setupAllDeleteModal({
 }
 
 //frame 모달 창 열기
-function openframeModal(frameElement){
+function openframeModal(frameElement) {
   const modal = document.getElementById('frameModal');
   const modalImg = document.getElementById('frame-modalPreviewImage');
   const sValue = document.getElementById('modalSValue');
   const mValue = document.getElementById('modalMValue');
 
-  //모달 이미지에 frame의 원본 이미지 넣기
+
+  const index = Array.from(document.querySelectorAll('.frame')).indexOf(frameElement);
+  const frameData = framesData[index];
+
+  // 원본 이미지
   const originalImg = frameElement.querySelector('.frame-original');
   if (originalImg) {
     modalImg.src = originalImg.src;
   }
-  //임시 설정
-  sValue.textContent = '23.5';
-  mValue.textContent = '12.7';
+
+
+  const S_area = frameData?.S_area ?? 0;
+  const M_area = frameData?.M_area ?? 0;
+  const structureRatio = S_area > 0 ? Math.round((M_area / S_area) * 100) : 0;
+
+
+const ctx = document.getElementById('modalPieChart').getContext('2d');
+
+// 기존 차트 있으면 제거
+if (modalChart) modalChart.destroy();
+
+
+const centerTextPlugin = {
+  id: 'centerText',
+  beforeDraw: (chart) => {
+    const { width, height, ctx } = chart;
+    ctx.save();
+    const value = `${structureRatio}%`; // 중앙 퍼센트 텍스트
+    const fontSize = (height / 4).toFixed(2);
+    ctx.font = `${fontSize}px Arial`;
+    ctx.fillStyle = '#333';
+    ctx.textBaseline = 'middle';
+    const textX = (width - ctx.measureText(value).width) / 2;
+    const textY = height / 2;
+    ctx.fillText(value, textX, textY);
+    ctx.restore();
+  }
+};
+
+// ✅ 도넛 차트 생성
+modalChart = new Chart(ctx, {
+  type: 'doughnut',
+  data: {
+    labels: ['부착생물', '남은영역'],
+    datasets: [{
+      data: [structureRatio, 100 - structureRatio],
+      backgroundColor: ['#007bff', '#e9ecef'],
+      borderWidth: 0
+    }]
+  },
+  options: {
+    cutout: '70%',
+    plugins: { legend: { display: false } },
+    responsive: false
+  },
+  plugins: [centerTextPlugin] // 🔹 여기 추가
+});
+
+
+  // ✅ 막대그래프 업데이트
+  const sFill = modal.querySelector('.s-fill');
+  const mFill = modal.querySelector('.m-fill');
+  sFill.style.width = `${S_area}%`;
+  sFill.querySelector('.percent-text').textContent = `${Math.round(S_area)}%`;
+  mFill.style.width = `${M_area}%`;
+  mFill.querySelector('.percent-text').textContent = `${Math.round(M_area)}%`;
 
   modal.style.display = 'flex';
 }

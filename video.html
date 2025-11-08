@@ -62,23 +62,48 @@
     </div> <!-- frame-section -->
   </div> <!-- container -->
   <!--frame 클릭 시 분석 모달 창-->
-  <div id="frameModal" class="frame-modal">
-    <div class="frame-modal-content">
-      <!-- ✅ 닫기 버튼 우측 상단에 배치 -->
-      <button id="modalClose" class="frame-modal-close">×</button>
-      <!-- 좌측: 이미지 -->
-      <div class="frame-modal-left">
-        <img id="frame-modalPreviewImage" src="" alt="원본 프레임">
+<div id="frameModal" class="frame-modal">
+  <div class="frame-modal-content">
+    <button id="modalClose" class="frame-modal-close">×</button>
+
+    <!-- 🔵 왼쪽: 원본 프레임 -->
+    <div class="frame-modal-left">
+      <img id="frame-modalPreviewImage" src="" alt="원본 프레임">
+    </div>
+
+    <!-- 🟠 오른쪽: image.html과 동일한 분석 UI -->
+    <div class="frame-modal-right">
+      <h2>구조물 대비 부착생물 면적%</h2>
+
+      <!-- 도넛 그래프 -->
+      <div class="circle-graph">
+        <canvas id="modalPieChart" width="250" height="250"></canvas>
       </div>
-      <!-- 우측: 분석 내용 -->
-      <div class="frame-modal-right">
-        <h3>구조물 대비 부착생물 면적%</h3>
-        <canvas id="modalPieChart" width="180" height="180"></canvas>
-        <p>S 면적: <span id="modalSValue">--</span>%</p>
-        <p>M 면적: <span id="modalMValue">--</span>%</p>
+
+      <!-- 막대 그래프 -->
+      <div class="percentages">
+        <div class="bar-set">
+          <span class="bar-label">S 면적</span>
+          <div class="bar">
+            <div class="fill s-fill" style="width:0%;">
+              <span class="percent-text">0%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bar-set">
+          <span class="bar-label">M 면적</span>
+          <div class="bar">
+            <div class="fill m-fill" style="width:0%;">
+              <span class="percent-text">0%</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
+</div>
+
   <!--최종 분석 클릭 시 분석 모달-->
   <div id="finalanalyzeModal" class="frame-modal">
     <div class="finalanalyze-modal-content">
@@ -95,5 +120,6 @@
     </div>
   </div>
   <script src="js/video.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 </html>
