@@ -67,17 +67,19 @@
     <button id="modalClose" class="frame-modal-close">×</button>
 
     <!-- 🔵 왼쪽: 원본 프레임 -->
-    <div class="frame-modal-left">
-      <img id="frame-modalPreviewImage" src="" alt="원본 프레임">
-    </div>
+   <div class="frame-modal-left">
+  <span id="frameNumberLabel" class="frame-label-above">Frame 1</span>
+  <img id="frame-modalPreviewImage" src="" alt="원본 프레임">
+</div>
 
     <!-- 🟠 오른쪽: image.html과 동일한 분석 UI -->
     <div class="frame-modal-right">
+
       <h2>구조물 대비 부착생물 면적%</h2>
 
       <!-- 도넛 그래프 -->
       <div class="circle-graph">
-        <canvas id="modalPieChart" width="250" height="250"></canvas>
+        <canvas id="modalPieChart" width="210" height="210"></canvas>
       </div>
 
       <!-- 막대 그래프 -->

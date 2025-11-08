@@ -219,9 +219,9 @@
 
 /* ✅ 왼쪽 썸네일 리스트 (3열 배치) */
 .finalanalyze-modal-left {
-  flex: 1.1;
+  flex: 1.3;
   margin-left: 40px;               /* 약간 오른쪽으로 이동 */
-  max-width: 38%;
+max-width: 42%;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -276,14 +276,23 @@
   background-color: #fafafa;
   border-radius: 12px;
   box-shadow: 0 0 8px rgba(0,0,0,0.08);
-  padding: 30px 35px;
-  width: 70%;
+  padding: 25px 25px 30px;   /* ⬆️ 위아래 패딩 조금 더 확보 */
+  width: 65%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  gap: 40px;                       /* ✅ 도넛-그래프 사이 여유 */
+  justify-content: center;   /* ⬆️ 가운데 정렬로 변경 */
+  gap: 25px;                 /* ⬆️ 도넛과 꺾은선 그래프 간 간격 확대 */
   margin: 0 auto;
+  overflow: visible;         /* ⬆️ 캔버스 잘림 방지 */
+}
+.finalanalyze-modal-right canvas {
+  display: block;
+  background-color: #fafafa;
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.05);
+  overflow: visible;         /* ⬆️ 캔버스 자체 잘림 방지 */
 }
 
 /* ✅ 도넛 그래프 크기 및 위치 */
@@ -293,17 +302,60 @@
   margin-top: -10px;               /* ✅ 살짝 위로 올리기 */
 }
 
-/* ✅ 꺾은선 그래프 크기 */
+
 #modalGraph {
   width: 420px !important;
   height: 180px !important;
 }
 
-/* ✅ 내부 캔버스 배경 제거 */
+
 .finalanalyze-graph-container canvas {
   background: none;
   box-shadow: none;
   padding: 0;
   border-radius: 0;
 }
+.thumb-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
 
+.thumb-number {
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+  text-align: center;
+}
+
+/* 🟦 frameModal 안에서 프레임 번호 (사진 위에 표시) */
+.frame-modal-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px; /* 이미지와 글자 간격 */
+}
+
+.frame-label-above {
+  font-size: 17px;
+  font-weight: 600;
+  color: #222;
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+}
+.frame-number {
+  font-size: 16px;
+  font-weight: 600;
+  color: #222;
+  text-align: center;
+  margin-bottom: 10px;  /* ✅ 제목과 원본 이미지 사이 여백 */
+}
+
+.frame-original-row {
+
+  margin-top: 20px; /* 🔹추가 여백 (필요 시 조절) */
+}

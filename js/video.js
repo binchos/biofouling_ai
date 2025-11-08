@@ -10,9 +10,13 @@ let modalChart = null;
 function addFrameSet(originalSrc, mSegSrc, sSegSrc) {
   const frameDiv = document.createElement('div');
   frameDiv.classList.add('frame');
+ const frameIndex = framesContainer.querySelectorAll('.frame').length + 1;
+ const frameNum = document.createElement('div');
+  frameNum.classList.add('frame-number');
+  frameNum.textContent = `Frame ${frameIndex}`;
+  frameDiv.appendChild(frameNum);
 
-
-  const closeBtn = document.createElement('button');
+ const closeBtn = document.createElement('button');
   closeBtn.classList.add('frame-close');
   closeBtn.textContent = '×';
   frameDiv.appendChild(closeBtn);
@@ -72,7 +76,15 @@ function addFrameSet(originalSrc, mSegSrc, sSegSrc) {
   framesContainer.appendChild(frameDiv);
 }
 
-
+function updateFrameNumbers() {
+  const frames = document.querySelectorAll('.frame');
+  frames.forEach((frame, index) => {
+    const numberEl = frame.querySelector('.frame-number');
+    if (numberEl) {
+      numberEl.textContent = `Frame ${index + 1}`;
+    }
+  });
+}
 //영상 업로드 함수
 function handleVideoUpload(event) {
   const file = event.target.files[0];
@@ -186,6 +198,7 @@ function deleteFrame(event) {
 
 
       frame.remove();
+      updateFrameNumbers();
     }
 
 
@@ -214,7 +227,7 @@ function setupDeleteFeature() {
 }
 
 //프레임 추출 함수
-function startExtractFrames(video, interval = 1000){
+function startExtractFrames(video, interval = 500){
   if (isExtracting) return; // 중복 실행 방지
   isExtracting = true;
 
@@ -323,7 +336,7 @@ function setupAllDeleteModal({
 
 
   framesData = [];
-
+ updateFrameNumbers();
 
   modal.style.display = 'none';
 
@@ -346,7 +359,10 @@ function openframeModal(frameElement) {
 
   const index = Array.from(document.querySelectorAll('.frame')).indexOf(frameElement);
   const frameData = framesData[index];
-
+const frameNumberLabel = document.getElementById('frameNumberLabel');
+if (frameNumberLabel) {
+  frameNumberLabel.textContent = `Frame ${index + 1}`;
+}
   // 원본 이미지
   const originalImg = frameElement.querySelector('.frame-original');
   if (originalImg) {
@@ -439,20 +455,28 @@ function setupFinalAnalyzeModal() {
 
     const thumbContainer = document.getElementById('frameThumbnails');
     thumbContainer.innerHTML = '';
-    framesData.forEach((f, idx) => {
-      const img = document.createElement('img');
-      img.src = URL.createObjectURL(f.blob);
-      img.alt = `Frame ${idx + 1}`;
-      img.title = `Frame ${idx + 1}`;
-      img.style.maxWidth = '180px';
-      img.style.width = '100%';
-      img.style.height = 'auto';
-      img.style.objectFit = 'cover';
-      img.style.borderRadius = '6px';
-      img.style.margin = '5px';
-      img.style.border = '2px solid #ddd';
-      thumbContainer.appendChild(img);
-    });
+ framesData.forEach((f, idx) => {
+  // ✅ 프레임 컨테이너
+  const thumbWrapper = document.createElement('div');
+  thumbWrapper.classList.add('thumb-wrapper');
+
+  // ✅ 번호 텍스트
+  const label = document.createElement('div');
+  label.classList.add('thumb-number');
+  label.textContent = `Frame ${idx + 1}`;
+
+  // ✅ 이미지
+  const img = document.createElement('img');
+  img.src = URL.createObjectURL(f.blob);
+  img.alt = `Frame ${idx + 1}`;
+  img.title = `Frame ${idx + 1}`;
+
+  // ✅ 조립
+  thumbWrapper.appendChild(label);
+  thumbWrapper.appendChild(img);
+  thumbContainer.appendChild(thumbWrapper);
+});
+
 
     //  평균 계산
     const avgStructure = framesData
@@ -524,9 +548,15 @@ function setupFinalAnalyzeModal() {
           fill: true
         }]
       },
-      options: {
-        responsive: false,
-        plugins: { legend: { display: false } },
+    options: {
+    responsive: false,
+    plugins: { legend: { display: false } },
+    layout: {
+      padding: {
+        top: 20,
+        bottom: 10
+      }
+    },
     scales: {
       y: {
         min: 50,
@@ -549,7 +579,8 @@ function setupFinalAnalyzeModal() {
           color: 'rgba(230,230,230,0.3)'
         }
       }
-    }
+    },
+      clip: false
   }
 });
   });
