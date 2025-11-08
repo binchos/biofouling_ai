@@ -105,20 +105,30 @@
 </div>
 
   <!--최종 분석 클릭 시 분석 모달-->
-  <div id="finalanalyzeModal" class="frame-modal">
-    <div class="finalanalyze-modal-content">
-      <button id="finalanalyzeModalClose" class="finalanalyze-modal-close">x</button>
-      <div class="finalanalyze-modal-left">
-        <h4>평균 면적</h4>
-        <div class="circle-graph">
-          <canvas id="modalPieChart2" width="180" height="180"></canvas>
-        </div>
-      </div>
-      <div class="finalanalyze-modal-right">
-        <canvas id="modalGraph" width="200" height="200"></canvas>
+ <!--최종 분석 클릭 시 분석 모달-->
+<div id="finalanalyzeModal" class="frame-modal">
+  <div class="finalanalyze-modal-content">
+    <button id="finalanalyzeModalClose" class="finalanalyze-modal-close">×</button>
+
+    <div class="finalanalyze-modal-left">
+      <h4>📸 프레임 요약</h4>
+      <div class="frame-thumbnails" id="frameThumbnails">
+        <!-- 작은 프레임 썸네일 자동 추가됨 -->
       </div>
     </div>
+
+    <div class="finalanalyze-modal-right">
+      <div class="finalanalyze-graph-container">
+      <h4>📊 구조물 대비 부착생물 평균</h4>
+       <canvas id="modalPieChart2" width="260" height="260"></canvas>
+
+
+      <canvas id="modalGraph" width="300" height="160"></canvas>
+    </div>
   </div>
+      </div>
+</div>
+
   <script src="js/video.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>

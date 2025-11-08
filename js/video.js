@@ -360,7 +360,7 @@ const centerTextPlugin = {
   }
 };
 
-// ✅ 도넛 차트 생성
+//  도넛 차트 생성
 modalChart = new Chart(ctx, {
   type: 'doughnut',
   data: {
@@ -376,11 +376,11 @@ modalChart = new Chart(ctx, {
     plugins: { legend: { display: false } },
     responsive: false
   },
-  plugins: [centerTextPlugin] // 🔹 여기 추가
+  plugins: [centerTextPlugin]
 });
 
 
-  // ✅ 막대그래프 업데이트
+  //  막대그래프 업데이트
   const sFill = modal.querySelector('.s-fill');
   const mFill = modal.querySelector('.m-fill');
   sFill.style.width = `${S_area}%`;
@@ -400,26 +400,144 @@ function closeframeModal(){
   });
 }
 function setupFinalAnalyzeModal() {
-  // 1️⃣ 열기 함수
-  function openFinalAnalyzeModal() {
-    const modal = document.getElementById('finalanalyzeModal');
-    if (modal) {
-      modal.style.display = 'flex';
-    }
-  }
-  // 2️⃣ 닫기 함수
-  function closeFinalAnalyzeModal() {
-    const modal = document.getElementById('finalanalyzeModal');
-    if (modal) {
-      modal.style.display = 'none';
-    }
-  }
-  const analyzeBtn = document.querySelector('.analyze');
+  const modal = document.getElementById('finalanalyzeModal');
   const closeBtn = document.getElementById('finalanalyzeModalClose');
+  const analyzeBtn = document.querySelector('.analyze');
+  let avgChart = null;
+  let lineChart = null;
 
-  if (analyzeBtn) analyzeBtn.addEventListener('click', openFinalAnalyzeModal);
-  if (closeBtn) closeBtn.addEventListener('click', closeFinalAnalyzeModal);
+  analyzeBtn.addEventListener('click', () => {
+    if (framesData.length === 0) {
+      alert("아직 분석된 프레임이 없습니다.");
+      return;
+    }
+
+    modal.style.display = 'flex';
+
+
+    const thumbContainer = document.getElementById('frameThumbnails');
+    thumbContainer.innerHTML = '';
+    framesData.forEach((f, idx) => {
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(f.blob);
+      img.alt = `Frame ${idx + 1}`;
+      img.title = `Frame ${idx + 1}`;
+      img.style.maxWidth = '180px';
+      img.style.width = '100%';
+      img.style.height = 'auto';
+      img.style.objectFit = 'cover';
+      img.style.borderRadius = '6px';
+      img.style.margin = '5px';
+      img.style.border = '2px solid #ddd';
+      thumbContainer.appendChild(img);
+    });
+
+    //  평균 계산
+    const avgStructure = framesData
+      .map(f => (f.S_area > 0 ? f.M_area / f.S_area : 0))
+      .reduce((a, b) => a + b, 0) / framesData.length;
+
+    const avgPercent = Math.round(avgStructure * 100);
+
+    //  도넛 차트 (평균)
+    const ctxPie = document.getElementById('modalPieChart2').getContext('2d');
+    if (avgChart) avgChart.destroy();
+
+    const centerTextPlugin = {
+      id: 'centerText',
+      beforeDraw: (chart) => {
+        const { width, height, ctx } = chart;
+        ctx.save();
+        const text = `${avgPercent}%`;
+        const fontSize = (height / 4).toFixed(2);
+        ctx.font = `${fontSize}px Arial`;
+        ctx.fillStyle = '#333';
+        ctx.textBaseline = 'middle';
+        const textX = (width - ctx.measureText(text).width) / 2;
+        const textY = height / 2;
+        ctx.fillText(text, textX, textY);
+        ctx.restore();
+      }
+    };
+
+    avgChart = new Chart(ctxPie, {
+      type: 'doughnut',
+      data: {
+        labels: ['평균 부착', '남은 영역'],
+        datasets: [{
+          data: [avgPercent, 100 - avgPercent],
+          backgroundColor: ['#007bff', '#e9ecef'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        cutout: '70%',
+        plugins: { legend: { display: false } },
+        responsive: false
+      },
+      plugins: [centerTextPlugin]
+    });
+
+    //  꺾은선 그래프
+    const ctxLine = document.getElementById('modalGraph').getContext('2d');
+    if (lineChart) lineChart.destroy();
+
+    const frameLabels = framesData.map((_, i) => `Frame ${i + 1}`);
+    const frameRatios = framesData.map(f =>
+      f.S_area > 0 ? Math.round((f.M_area / f.S_area) * 100) : 0
+    );
+
+    lineChart = new Chart(ctxLine, {
+      type: 'line',
+      data: {
+        labels: frameLabels,
+        datasets: [{
+          label: '구조물 대비 부착생물 비율(%)',
+          data: frameRatios,
+          borderColor: '#007bff',
+          backgroundColor: 'rgba(0,123,255,0.2)',
+          borderWidth: 2,
+          tension: 0.3,
+          pointRadius: 4,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: false,
+        plugins: { legend: { display: false } },
+    scales: {
+      y: {
+        min: 50,
+        max: 100,
+        ticks: {
+          stepSize: 10,
+          color: '#444',
+          font: { size: 12 }
+        },
+        grid: {
+          color: 'rgba(200,200,200,0.3)'
+        }
+      },
+      x: {
+        ticks: {
+          color: '#555',
+          font: { size: 12 }
+        },
+        grid: {
+          color: 'rgba(230,230,230,0.3)'
+        }
+      }
+    }
+  }
+});
+  });
+
+  // 닫기 버튼
+  closeBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
 }
+
 
 function navigateTo(page) {
   const currentPath = window.location.pathname;
@@ -431,7 +549,7 @@ function navigateTo(page) {
 
 
 
-// ✅ 페이지 로드 시 자동 생성
+//  페이지 로드 시 자동 생성
 window.addEventListener('load', () => {
   const currentPage = window.location.pathname;
 const imgBtn = document.getElementById('img-mode');

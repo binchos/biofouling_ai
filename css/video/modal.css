@@ -182,40 +182,128 @@
   background: #007bff;
 }
 
-
 /* ===============================
    📊 최종 분석 모달
 =================================*/
 .finalanalyze-modal-content {
   background: white;
-  border-radius: 12px;
-  padding: 20px;
-  width: 600px;
-  height: 350px;
+  border-radius: 16px;
+  padding: 25px;
+  width: 75vw;
+  height: 70vh;
   display: flex;
-  gap: 30px;
-  align-items: center;
+  align-items: stretch;
+  justify-content: center;
+  gap: 40px;
   position: relative;
+  box-shadow: 0 4px 25px rgba(0,0,0,0.25);
+  overflow: hidden;
 }
 
+/* 닫기 버튼 */
 .finalanalyze-modal-close {
   position: absolute;
-  top: 10px;
-  right: 15px;
+  top: 15px;
+  right: 20px;
   background: none;
   border: none;
-  font-size: 24px;
+  font-size: 30px;
   color: #666;
   cursor: pointer;
+  z-index: 10;
 }
-
 .finalanalyze-modal-close:hover {
   color: #000;
-  transform: scale(1.2);
+  transform: scale(1.1);
 }
 
-.finalanalyze-modal-left,
-.finalanalyze-modal-right {
-  flex: 1;
+/* ✅ 왼쪽 썸네일 리스트 (3열 배치) */
+.finalanalyze-modal-left {
+  flex: 1.1;
+  margin-left: 40px;               /* 약간 오른쪽으로 이동 */
+  max-width: 38%;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  height: 100%;
+  overflow: hidden;
+  background: none;
+  box-shadow: none;
 }
+
+.frame-thumbnails {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* ✅ 항상 3개씩 */
+  gap: 14px;
+  width: 100%;
+  max-height: calc(100% - 60px);
+  overflow-y: auto;
+  padding: 10px 5px;
+  justify-items: center;
+}
+
+.frame-thumbnails img {
+  width: 100%;
+  height: auto;
+  max-width: 160px;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 2px solid #ccc;
+  background-color: #f4f4f4;
+  transition: all 0.25s ease;
+}
+.frame-thumbnails img:hover {
+  transform: scale(1.05);
+  border-color: #007bff;
+  box-shadow: 0 3px 10px rgba(0, 123, 255, 0.2);
+}
+
+/* ✅ 오른쪽 그래프 영역 */
+.finalanalyze-modal-right {
+  flex: 1.9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 100%;
+}
+
+/* ✅ 공통 그래프 박스 (도넛 + 꺾은선 그래프) */
+.finalanalyze-graph-container {
+  background-color: #fafafa;
+  border-radius: 12px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.08);
+  padding: 30px 35px;
+  width: 70%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 40px;                       /* ✅ 도넛-그래프 사이 여유 */
+  margin: 0 auto;
+}
+
+/* ✅ 도넛 그래프 크기 및 위치 */
+#modalPieChart2 {
+  width: 200px !important;
+  height: 200px !important;
+  margin-top: -10px;               /* ✅ 살짝 위로 올리기 */
+}
+
+/* ✅ 꺾은선 그래프 크기 */
+#modalGraph {
+  width: 420px !important;
+  height: 180px !important;
+}
+
+/* ✅ 내부 캔버스 배경 제거 */
+.finalanalyze-graph-container canvas {
+  background: none;
+  box-shadow: none;
+  padding: 0;
+  border-radius: 0;
+}
+
