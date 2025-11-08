@@ -74,7 +74,9 @@ document.querySelector(".s-fill .percent-text").textContent = `${Math.round(sPer
 
 document.querySelector(".m-fill").style.width = `${mPercent}%`;
 document.querySelector(".m-fill .percent-text").textContent = `${Math.round(mPercent)}%`;
-
+const segBoxes = document.querySelectorAll(".seg-box");
+segBoxes[0].innerHTML = `<img src="${result.M_mask}" alt="M mask" style="width:100%;height:100%;object-fit:contain;">`;
+segBoxes[1].innerHTML = `<img src="${result.S_mask}" alt="S mask" style="width:100%;height:100%;object-fit:contain;">`;
   } catch (error) {
     console.error("🚨 예측 요청 실패:", error);
   }
