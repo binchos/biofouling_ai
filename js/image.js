@@ -114,15 +114,22 @@ function navigateTo(page) {
 }
 
 window.addEventListener('load', () => {
-  drawDonutChart(80);
+
+  drawDonutChart(0);
+  document.querySelector(".s-fill").style.width = "0%";
+  document.querySelector(".s-fill .percent-text").textContent = "0%";
+  document.querySelector(".m-fill").style.width = "0%";
+  document.querySelector(".m-fill .percent-text").textContent = "0%";
+
+
   handleImageUpload('fileInput', 'previewBox');
-  document.getElementById('img-mode').addEventListener('click', () => {
-    navigateTo('image.html');
-  });
-  document.getElementById('video-mode').addEventListener('click', () => {
-    navigateTo('video.html');
-  });
- document.querySelector(".analyze").addEventListener("click", async () => {
+
+
+  document.getElementById('img-mode').addEventListener('click', () => navigateTo('image.html'));
+  document.getElementById('video-mode').addEventListener('click', () => navigateTo('video.html'));
+
+
+  document.querySelector(".analyze").addEventListener("click", async () => {
     const fileInput = document.getElementById("fileInput");
     const file = fileInput.files[0];
     if (!file) {
@@ -132,9 +139,6 @@ window.addEventListener('load', () => {
     console.log("🔍 분석 시작: 서버에 요청 중...");
     await sendImageToServer(file);
   });
-
-
-
-
 });
+
 
