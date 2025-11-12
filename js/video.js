@@ -346,7 +346,6 @@ confirmBtn.addEventListener('click', () => {
     deleteButton.classList.remove('active');
     deleteButton.textContent = '삭제';
   }
-
   document.querySelectorAll('.frame').forEach(f => f.classList.remove('show-close'));
 
   modal.style.display = 'none';
