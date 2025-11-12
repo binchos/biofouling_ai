@@ -1,0 +1,107 @@
+[33mcommit b8d52411c42ceb4ba908f683c78830c1979abdc5[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mwebsite-ui[m[33m)[m
+Author: binchos <chsobn1210@gmail.com>
+Date:   Wed Nov 12 19:15:10 2025 +0900
+
+    이미지 이름 작성,정렬
+
+[33mcommit 3385b846cd4180b1f8d24c6c3889886ab898a823[m
+Author: binchos <chsobn1210@gmail.com>
+Date:   Wed Nov 12 17:02:44 2025 +0900
+
+    동영상 실행중 삭제 버튼 클릭시 로직꼬임 해결
+
+[33mcommit 9c83a952603cf2c41a21b22b286a1a53cd64ef53[m
+Author: binchos <chsobn1210@gmail.com>
+Date:   Wed Nov 12 16:48:53 2025 +0900
+
+    삭제 버튼+전체삭제 클릭->삭제에서 취소 안변함 해결
+
+[33mcommit 8e7131e1722ef4e7f4b5223d0e1c9b201877b280[m
+Author: binchos <chsobn1210@gmail.com>
+Date:   Wed Nov 12 16:48:00 2025 +0900
+
+    삭제 누른상태,재실행시 로직 꼬임 해결
+
+[33mcommit 9b594341724bf01de65138935f244df2c10e46c9[m[33m ([m[1;31morigin/website-ui[m[33m)[m
+Author: binchos <chsobn1210@gmail.com>
+Date:   Sat Nov 8 22:17:15 2025 +0900
+
+    frame 수 추가(모달등)
+
+[33mcommit bcca6a03c6274b45e67917e397df5ac416797357[m
+Author: binchos <chsobn1210@gmail.com>
+Date:   Sat Nov 8 21:13:34 2025 +0900
+
+    삭제, 전체삭제 배열 남아있는 오류 수정
+
+[33mcommit 9394d1cf4ec29dfa2cd992a37ad885f6aa32131f[m
+Author: binchos <chsobn1210@gmail.com>
+Date:   Sat Nov 8 21:07:04 2025 +0900
+
+    최종분석 모달 기능 추가
+
+[33mcommit b7c727ea31f0d0ff9dcc11e8b89ae5b730d8c114[m
+Author: binchos <chsobn1210@gmail.com>
+Date:   Sat Nov 8 20:30:05 2025 +0900
+
+    이미지 영상 버튼 색상 유지
+
+[33mcommit 4c781d2927de3bf61f19237dd59d06caedfdf01b[m
+Author: binchos <chsobn1210@gmail.com>
+Date:   Sat Nov 8 20:09:10 2025 +0900
+
+    동영상 모달 그래프 기능 추가
+
+[33mcommit 5b9b2817a07dadab9585ff6be08cce07a15e5acc[m
+Author: binchos <chsobn1210@gmail.com>
+Date:   Sat Nov 8 19:26:42 2025 +0900
+
+    그래프 초기 세팅값 조정
+
+[33mcommit e333c1f0b2b4b76f2b5c73e5735ea32e8dfadbcb[m
+Author: binchos <chsobn1210@gmail.com>
+Date:   Sat Nov 8 19:14:36 2025 +0900
+
+    동영상 s,m 예측 사진 기능 추가
+
+[33mcommit ae73316194450ee617cedd7ccdc5002dce8e3733[m
+Author: binchos <chsobn1210@gmail.com>
+Date:   Sat Nov 8 19:00:45 2025 +0900
+
+    이미지 s,m 예측 사진 기능 추가
+
+[33mcommit 5751c8ec28933f49fdc811a9b54d967814fa498f[m
+Author: binchos <chsobn1210@gmail.com>
+Date:   Sat Nov 8 18:38:48 2025 +0900
+
+    경로 수정
+
+[33mcommit d6c4d3ec133b995906eed7d22c5e01704af7d708[m
+Author: binchos <chsobn1210@gmail.com>
+Date:   Sat Nov 8 18:24:12 2025 +0900
+
+    remove locked model file
+
+[33mcommit 1ecffdd04ecba2e5a50f3b989c1e3a9fb8bd8f10[m
+Author: binchos <chsobn1210@gmail.com>
+Date:   Sat Nov 8 18:06:23 2025 +0900
+
+    remove large model file
+
+[33mcommit 3775ffbadecfe0668a339ec3d4d1bd17d4c67457[m
+Author: binchos <chsobn1210@gmail.com>
+Date:   Sat Nov 8 18:05:10 2025 +0900
+
+    image server
+
+[33mcommit fd370a3307053c6baf68bcf9fef5bca2ce7db3f5[m
+Author: binchos <chsobn1210@gmail.com>
+Date:   Sat Nov 8 16:44:22 2025 +0900
+
+    add model, dataio,visualize scripts from kowp_finetune_viz
+
+[33mcommit 7f75ff5ebb8569fe24c845dec1fbac5d83dbcc1c[m
+Author: Kim Seungwook <kksy0316@gmail.com>
+Date:   Sat Nov 8 14:55:26 2025 +0900
+
+    Initial commit for website

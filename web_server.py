@@ -27,14 +27,20 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 
 model_img = MultiHeadNet(backbone_name="convnext_tiny", n_cls=3)
-ckpt_img = torch.load(r"C:\Users\kksy0316\Desktop\finetuning\kowp_finetune_data_edit.pt", map_location=device)
+
+ckpt_img = torch.load(r"C:\Users\chsobn0710\Desktop\bio\kowp_finetune_data_edit.pt", map_location=device)
+
+
 state_img = ckpt_img["state_dict"] if "state_dict" in ckpt_img else ckpt_img
 model_img.load_state_dict(state_img, strict=False)
 model_img.eval().to(device)
 
 
 model_vid = MultiHeadNet(backbone_name="convnext_tiny", n_cls=3)
-ckpt_vid = torch.load(r"C:\Users\kksy0316\Desktop\finetuning\kowp_finetune_data_50_edit.pt", map_location=device)
+
+ckpt_vid = torch.load(r"C:\Users\chsobn0710\Desktop\bio\kowp_finetune_data_50_edit.pt", map_location=device)
+
+
 state_vid = ckpt_vid["state_dict"] if "state_dict" in ckpt_vid else ckpt_vid
 model_vid.load_state_dict(state_vid, strict=False)
 model_vid.eval().to(device)
