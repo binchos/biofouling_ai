@@ -30,7 +30,7 @@
 
           <!-- 원본 이미지 박스 + 업로드 버튼 -->
           <div class="image-box">
-            <div class="image-placeholder" id="previewBox">원본 이미지 박스</div>
+            <div class="image-placeholder" id="previewBox">원본 이미지</div>
             <div class="upload-container">
               <input type="file" id="fileInput" accept="image/*">
             </div>
@@ -38,9 +38,17 @@
 
           <!-- Segmentation 박스 -->
           <div class="seg-box-container">
-            <div class="seg-box">M seg 박스</div>
-            <div class="seg-box">S seg 박스</div>
-          </div>
+  <div class="seg-box-wrapper">
+    <div class="seg-box">부착생물</div>
+    <p class="seg-label">부착생물</p>
+  </div>
+
+  <div class="seg-box-wrapper">
+    <div class="seg-box">구조물</div>
+    <p class="seg-label">구조물</p>
+  </div>
+</div>
+
         </div>
 
         <!-- 🟠 오른쪽: 분석 정보 -->
@@ -52,7 +60,7 @@
           </div>
           <div class="percentages">
             <div class="bar-set">
-              <span class="bar-label">S 면적</span>
+              <span class="bar-label">구조물</span>
               <div class="bar">
                 <div class="fill s-fill" style="width: 20%;">
                   <span class="percent-text">20%</span>
@@ -61,7 +69,7 @@
             </div>
 
             <div class="bar-set">
-              <span class="bar-label">M 면적</span>
+              <span class="bar-label">부착생물</span>
               <div class="bar">
                 <div class="fill m-fill" style="width: 80%;">
                   <span class="percent-text">80%</span>
@@ -80,3 +88,4 @@
   </div> <!-- .container -->
 </body>
 </html>
+

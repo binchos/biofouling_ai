@@ -41,7 +41,7 @@ function addFrameSet(originalSrc, mSegSrc, sSegSrc) {
   mImg.classList.add('frame-seg');
   const mLabel = document.createElement('div');
   mLabel.classList.add('frame-label');
-  mLabel.textContent = 'M seg';
+  mLabel.textContent = '부착생물';
   mBox.appendChild(mImg);
   mBox.appendChild(mLabel);
 
@@ -53,7 +53,7 @@ function addFrameSet(originalSrc, mSegSrc, sSegSrc) {
   sImg.classList.add('frame-seg');
   const sLabel = document.createElement('div');
   sLabel.classList.add('frame-label');
-  sLabel.textContent = 'S seg';
+  sLabel.textContent = '구조물';
   sBox.appendChild(sImg);
   sBox.appendChild(sLabel);
 
@@ -74,6 +74,10 @@ function addFrameSet(originalSrc, mSegSrc, sSegSrc) {
   });
 
   framesContainer.appendChild(frameDiv);
+  const deleteButton= document.querySelector('.delete');
+  if(deleteButton && deleteButton.classList.contains('active')){
+    frameDiv.classList.add('show-close');
+  }
 }
 
 function updateFrameNumbers() {
@@ -107,15 +111,20 @@ function handleVideoUpload(event) {
 //영상 재생 함수
 function playVideo(event){
   const video = document.getElementById('preview');
-  // ✅ src가 없으면 재생 안 시도
+  const framesContainer = document.querySelector('.frames');
+  const deleteButton = document.querySelector('.delete');
+  if (deleteButton) {
+    deleteButton.classList.remove('active');
+    deleteButton.textContent = '삭제';
+  }
+  document.querySelectorAll('.frame').forEach(f => f.classList.remove('show-close'));
   if (!video || !video.currentSrc) {
     console.warn("영상이 없습니다.");
     return;
   }
-  // ✅ 재생 중이면 중복 재생 시도 방지
   if (video.paused || video.ended) {
     video.play().then(() => {
-      startExtractFrames(video);// 영상 재생 시작 시 프레임 추출 시작
+      startExtractFrames(video); // 영상 재생 시작 시 프레임 추출 시작
     }).catch(err => {
       console.warn("재생 실패:", err);
     });
@@ -123,6 +132,7 @@ function playVideo(event){
     console.log("이미 재생 중입니다.");
   }
 }
+
 
 //영상 정지 함수
 function stopVideo(event){
@@ -147,11 +157,11 @@ function addFrame(blobUrl, metadata){
     <div class="frame-seg-row">
     <div class="seg-box">
         <img src="mseg/frame_m.png" class="frame-seg" alt="M seg">
-        <div class="frame-label">M seg</div>
+        <div class="frame-label">부착생물</div>
     </div>
     <div class="seg-box">
         <img src="sseg/frame$_s.png" class="frame-seg" alt="S seg">
-        <div class="frame-label">S seg</div>
+        <div class="frame-label">구조물</div>
     </div>
     </div>
   `;
@@ -217,7 +227,7 @@ function deleteFrame(event) {
   }
 }
 
-//삭제 버튼 이벤트 연결 함수
+
 function setupDeleteFeature() {
   const deleteButton = document.querySelector('.delete');
   if (deleteButton) {
@@ -226,7 +236,7 @@ function setupDeleteFeature() {
   document.addEventListener('click', deleteFrame);
 }
 
-//프레임 추출 함수
+
 function startExtractFrames(video, interval = 500){
   if (isExtracting) return; // 중복 실행 방지
   isExtracting = true;
@@ -237,16 +247,16 @@ function startExtractFrames(video, interval = 500){
       return;
     }
     const currentTime = video.currentTime;
-    // 중복 추출 방지 (0.5초 이상 차이 날 때만)
+
     if (Math.abs(currentTime - lastCapturedTime) > 0.5) {
       captureCurrentFrame(video, currentTime);
       lastCapturedTime = currentTime;
     }
 
-  }, interval); // e.g. 1000ms마다 추출 시도
+  }, interval);
 }
 
-//프레임 추출 정지 함수
+
 function stopExtractFrames(){
   if (extractIntervalId){
     clearInterval(extractIntervalId);
@@ -255,8 +265,7 @@ function stopExtractFrames(){
   }
 }
 
-//현재 프레임을 캡처하는 로직(blob + 메타 데이터 저장)
-// 현재 프레임을 캡처 + 서버에 보내서 세그 결과 추가
+
 function captureCurrentFrame(videoElement, time) {
   const canvas = document.createElement('canvas');
   canvas.width = videoElement.videoWidth;
@@ -268,23 +277,26 @@ function captureCurrentFrame(videoElement, time) {
   canvas.toBlob(async blob => {
     const frameURL = URL.createObjectURL(blob);
 
-    // ✅ 서버로 프레임 전송
+
     const formData = new FormData();
     formData.append("file", blob);
+    formData.append("mode", "video");
 
     try {
       const response = await fetch("http://127.0.0.1:8000/predict", {
         method: "POST",
         body: formData
       });
+
       if (!response.ok) throw new Error("서버 예측 실패");
       const result = await response.json();
 
-      // ✅ 세그 이미지(Base64)
+
+      const overlaySrc = result.overlay;
       const mSegSrc = result.M_mask;
       const sSegSrc = result.S_mask;
 
-      // ✅ 프레임을 DOM에 추가
+
       addFrameSet(frameURL, mSegSrc, sSegSrc);
 
       framesData.push({
@@ -292,7 +304,8 @@ function captureCurrentFrame(videoElement, time) {
         timestamp: time.toFixed(2),
         blob: blob,
         S_area: result.S_area,
-        M_area: result.M_area
+        M_area: result.M_area,
+        overlay: overlaySrc
       });
     } catch (err) {
       console.error("❌ 프레임 분석 실패:", err);
@@ -301,7 +314,7 @@ function captureCurrentFrame(videoElement, time) {
 }
 
 
-//전체 삭제 버튼 클릭시 모달 창 활성화 함수
+
 function setupAllDeleteModal({
   buttonSelector,
   modalSelector,
@@ -330,18 +343,22 @@ function setupAllDeleteModal({
     modal.style.display = 'flex';
   });
 
- confirmBtn.addEventListener('click', () => {
-
+confirmBtn.addEventListener('click', () => {
   targetContainer.innerHTML = '';
-
-
   framesData = [];
- updateFrameNumbers();
+  updateFrameNumbers();
+
+  const deleteButton = document.querySelector('.delete');
+  if (deleteButton) {
+    deleteButton.classList.remove('active');
+    deleteButton.textContent = '삭제';
+  }
+  document.querySelectorAll('.frame').forEach(f => f.classList.remove('show-close'));
 
   modal.style.display = 'none';
-
-  console.log("✅ 모든 프레임 및 데이터 삭제 완료");
+  console.log("✅ 모든 프레임 및 데이터 삭제 완료 (삭제 버튼 리셋)");
 });
+
 
 
   cancelBtn.addEventListener('click', () => {
@@ -364,15 +381,16 @@ if (frameNumberLabel) {
   frameNumberLabel.textContent = `Frame ${index + 1}`;
 }
   // 원본 이미지
+if (frameData && frameData.overlay) {
+  modalImg.src = frameData.overlay;   // 보라색 겹침 포함된 오버레이 이미지
+} else {
   const originalImg = frameElement.querySelector('.frame-original');
-  if (originalImg) {
-    modalImg.src = originalImg.src;
-  }
-
+  modalImg.src = originalImg?.src || '';
+}
 
   const S_area = frameData?.S_area ?? 0;
-  const M_area = frameData?.M_area ?? 0;
-  const structureRatio = S_area > 0 ? Math.round((M_area / S_area) * 100) : 0;
+  const M_area = frameData?Math.min(frameData.M_area ?? 0, frameData.S_area ?? 0) : 0;
+  const structureRatio = S_area > 0 ? Math.round(Math.min((M_area / S_area),1)*100) : 0;
 
 
 const ctx = document.getElementById('modalPieChart').getContext('2d');
@@ -480,7 +498,7 @@ function setupFinalAnalyzeModal() {
 
     //  평균 계산
     const avgStructure = framesData
-      .map(f => (f.S_area > 0 ? f.M_area / f.S_area : 0))
+      .map(f => (f.S_area > 0 ? Math.min((f.M_area / f.S_area),1) : 0))
       .reduce((a, b) => a + b, 0) / framesData.length;
 
     const avgPercent = Math.round(avgStructure * 100);
@@ -530,8 +548,9 @@ function setupFinalAnalyzeModal() {
 
     const frameLabels = framesData.map((_, i) => `Frame ${i + 1}`);
     const frameRatios = framesData.map(f =>
-      f.S_area > 0 ? Math.round((f.M_area / f.S_area) * 100) : 0
+      f.S_area > 0 ? Math.round(Math.min((f.M_area / f.S_area),1)*100) : 0
     );
+
 
     lineChart = new Chart(ctxLine, {
       type: 'line',
@@ -559,7 +578,7 @@ function setupFinalAnalyzeModal() {
     },
     scales: {
       y: {
-        min: 50,
+        min: 0,
         max: 100,
         ticks: {
           stepSize: 10,
@@ -590,7 +609,6 @@ function setupFinalAnalyzeModal() {
     modal.style.display = 'none';
   });
 }
-
 
 function navigateTo(page) {
   const currentPath = window.location.pathname;

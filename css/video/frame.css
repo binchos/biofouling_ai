@@ -38,7 +38,7 @@
    padding: 20px 11px 11px;
   position: relative;
   width: 405px;
-  height: 420px;   /* 🔽 세로 줄이기 (500 → 420) */
+  height: 350px;   /* 🔽 세로 줄이기 (500 → 420) */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -88,9 +88,10 @@
 
 /* frame에 올라가는 이미지에 관한 것 */
 .frame-original-row img {
-  width: 95%;         /* 🔽 살짝 줄여 균형 맞춤 */
+  width: 100%;
+  max-width: 380px;  /* ✅ 프레임 내부 여백 감안한 최대 크기 */
+  object-fit: contain;
   border-radius: 8px;
-  margin-bottom: 8px;  /* 🔽 간격 줄이기 */
 }
 
 .frame-seg-row {
@@ -111,10 +112,17 @@
   font-size: 13px;
   margin-top: 4px;
   color: #444;
+  text-align: center;
+  font-weight: bold;
 }
 
 
 /* 🟦 원본 이미지와 세그 박스 사이 간격 */
 .frame-original-row {
-  margin-bottom: 20px;   /* 🔼 원본 이미지 아래쪽 여백 (조정 가능: 8~20px) */
+  width: 100%;
+  display: flex;
+  justify-content: center;  /* ✅ 이미지 중앙 정렬 */
+  align-items: center;
+  margin-bottom: 20px;
 }
+

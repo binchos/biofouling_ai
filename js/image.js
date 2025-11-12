@@ -47,6 +47,7 @@ function drawDonutChart(percent, elementId = 'doughnutChart') {
 async function sendImageToServer(file) {
   const formData = new FormData();
   formData.append("file", file);
+formData.append("mode", "image");
 
   try {
     const response = await fetch("http://127.0.0.1:8000/predict", {
@@ -60,10 +61,10 @@ async function sendImageToServer(file) {
 
     // 1. S_area, M_area: 전체 이미지 대비 (%)
     const sPercent = result.S_area;
-    const mPercent = result.M_area;
+        const mPercent = Math.min(result.M_area ?? 0, result.S_area??0);
 
     // 2. 구조물 대비 부착생물 비율
-    const structureRatio = sPercent > 0 ? Math.round((mPercent / sPercent) * 100) : 0;
+    const structureRatio = sPercent > 0 ? Math.round(Math.min((mPercent / sPercent),1) * 100) : 0;
 
     // 3. 도넛 (구조물 대비 부착비율)
     drawDonutChart(structureRatio);
