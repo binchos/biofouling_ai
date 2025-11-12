@@ -74,6 +74,10 @@ function addFrameSet(originalSrc, mSegSrc, sSegSrc) {
   });
 
   framesContainer.appendChild(frameDiv);
+  const deleteButton= document.querySelector('.delete');
+  if(deleteButton && deleteButton.classList.contains('active')){
+    frameDiv.classList.add('show-close');
+  }
 }
 
 function updateFrameNumbers() {

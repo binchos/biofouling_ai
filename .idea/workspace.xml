@@ -104,7 +104,7 @@
       <workItem from="1762587331375" duration="178000" />
       <workItem from="1762587528132" duration="5000000" />
       <workItem from="1762594071728" duration="26398000" />
-      <workItem from="1762929677256" duration="3258000" />
+      <workItem from="1762929677256" duration="4235000" />
     </task>
     <servers />
   </component>
@@ -127,6 +127,18 @@
       <path value="$PROJECT_DIR$/clean-biofouling" />
       <path value="$PROJECT_DIR$" />
     </ignored-roots>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/js/video.js</url>
+          <line>342</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/biofouling$masks_raw_check_ratio_sm.coverage" NAME="masks_raw_check_ratio_sm Coverage Results" MODIFIED="1758030722984" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/base" />
