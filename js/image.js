@@ -30,7 +30,7 @@ function drawDonutChart(percent, elementId = 'doughnutChart') {
       labels: ['채워진 영역', '남은 영역'],
       datasets: [{
         data: [percent, 100 - percent],
-        backgroundColor: ['#007bff', '#e9ecef'],
+        backgroundColor: ['#644073', '#e9ecef'],
         borderWidth: 0
       }]
     },
@@ -58,18 +58,21 @@ formData.append("mode", "image");
     if (!response.ok) throw new Error("서버 요청 실패");
     const result = await response.json();
     console.log("✅ 서버 응답:", result);
+ document.querySelectorAll(".seg-label").forEach(label => {
+      label.style.visibility = "visible";
+    });
 
-    // 1. S_area, M_area: 전체 이미지 대비 (%)
+
     const sPercent = result.S_area;
         const mPercent = Math.min(result.M_area ?? 0, result.S_area??0);
 
-    // 2. 구조물 대비 부착생물 비율
+
     const structureRatio = sPercent > 0 ? Math.round(Math.min((mPercent / sPercent),1) * 100) : 0;
 
-    // 3. 도넛 (구조물 대비 부착비율)
+
     drawDonutChart(structureRatio);
 
-    // 4. 막대 그래프 (전체 대비)
+
    document.querySelector(".s-fill").style.width = `${sPercent}%`;
 document.querySelector(".s-fill .percent-text").textContent = `${Math.round(sPercent)}%`;
 
@@ -90,22 +93,48 @@ function handleImageUpload(inputId, previewBoxId) {
 
   fileInput.addEventListener('change', function () {
     const file = this.files[0];
-    if (!file) return;
+    const segBoxes = document.querySelectorAll(".seg-box");
+    const segLabels = document.querySelectorAll(".seg-label");
+
+
+    segBoxes.forEach(box => {
+      box.innerHTML = box.classList.contains('structure-box')
+        ? "구조물"
+        : "부착생물";
+    });
+
+
+    segLabels.forEach(label => (label.style.visibility = "hidden"));
+
+
+    drawDonutChart(0);
+    document.querySelector(".s-fill").style.width = "0%";
+    document.querySelector(".s-fill .percent-text").textContent = "0%";
+    document.querySelector(".m-fill").style.width = "0%";
+    document.querySelector(".m-fill .percent-text").textContent = "0%";
+
+
+    if (!file) {
+      previewBox.innerHTML = "원본 이미지";
+      return;
+    }
+
 
     const reader = new FileReader();
     reader.onload = function (e) {
-      previewBox.innerHTML = '';  // 기존 내용 제거
+      previewBox.innerHTML = '';  // 기존 원본 제거
       const img = document.createElement('img');
       img.src = e.target.result;
-      img.style.width = '100%';     // 박스 크기에 맞게
-      img.style.height = '100%';    // 박스 크기에 맞게
-      img.style.objectFit = 'contain'; // 비율 유지하면서 채우기
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.objectFit = 'contain';
       previewBox.appendChild(img);
     };
     reader.readAsDataURL(file);
-
   });
 }
+
+
 
 function navigateTo(page) {
   const currentPath = window.location.pathname;
@@ -153,5 +182,3 @@ if (currentPage.includes('image')) {
     await sendImageToServer(file);
   });
 });
-
-

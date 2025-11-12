@@ -43,10 +43,10 @@
   font-weight: bold;
 }
 .s-fill {
-  background-color: #6c757d; /* 회색 */
+  background-color: #007bff; /* 회색 */
 }
 .m-fill {
-  background-color: #007bff; /* 파랑 */
+  background-color: #ff5757; /* 파랑 */
 }
 .percent-text {
   font-size: 14px;

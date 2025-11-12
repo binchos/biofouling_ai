@@ -423,12 +423,13 @@ modalChart = new Chart(ctx, {
     labels: ['부착생물', '남은영역'],
     datasets: [{
       data: [structureRatio, 100 - structureRatio],
-      backgroundColor: ['#007bff', '#e9ecef'],
+      backgroundColor: ['#644073', '#e9ecef'],
       borderWidth: 0
+      //#007bff
     }]
   },
   options: {
-    cutout: '70%',
+    cutout: '75%',
     plugins: { legend: { display: false } },
     responsive: false
   },

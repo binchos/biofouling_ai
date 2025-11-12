@@ -82,8 +82,8 @@ def run_inference(model, img):
     overlay[both == 1] = overlay[both == 1] * (1 - alpha) + purple * alpha
     overlay = np.clip(overlay, 0, 255).astype(np.uint8)
 
-    S_img_b64 = mask_to_base64(S_mask, cmap="Reds")
-    M_img_b64 = mask_to_base64(M_mask, cmap="Blues")
+    S_img_b64 = mask_to_base64(S_mask, cmap="Blues")
+    M_img_b64 = mask_to_base64(M_mask, cmap="Reds")
 
     buf = io.BytesIO()
     Image.fromarray(overlay).save(buf, format="JPEG", quality=95)
