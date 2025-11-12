@@ -289,7 +289,7 @@ function captureCurrentFrame(videoElement, time) {
       });
       if (!response.ok) throw new Error("서버 예측 실패");
       const result = await response.json();
-
+const overlaySrc = result.overlay;
       // ✅ 세그 이미지(Base64)
       const mSegSrc = result.M_mask;
       const sSegSrc = result.S_mask;
@@ -302,7 +302,8 @@ function captureCurrentFrame(videoElement, time) {
         timestamp: time.toFixed(2),
         blob: blob,
         S_area: result.S_area,
-        M_area: result.M_area
+        M_area: result.M_area,
+         overlay: overlaySrc
       });
     } catch (err) {
       console.error("❌ 프레임 분석 실패:", err);
@@ -378,11 +379,12 @@ if (frameNumberLabel) {
   frameNumberLabel.textContent = `Frame ${index + 1}`;
 }
   // 원본 이미지
+if (frameData && frameData.overlay) {
+  modalImg.src = frameData.overlay;   // 보라색 겹침 포함된 오버레이 이미지
+} else {
   const originalImg = frameElement.querySelector('.frame-original');
-  if (originalImg) {
-    modalImg.src = originalImg.src;
-  }
-
+  modalImg.src = originalImg?.src || '';
+}
 
   const S_area = frameData?.S_area ?? 0;
   const M_area = frameData?Math.min(frameData.M_area ?? 0, frameData.S_area ?? 0) : 0;
