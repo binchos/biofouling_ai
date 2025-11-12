@@ -227,7 +227,7 @@ function deleteFrame(event) {
   }
 }
 
-//삭제 버튼 이벤트 연결 함수
+
 function setupDeleteFeature() {
   const deleteButton = document.querySelector('.delete');
   if (deleteButton) {
@@ -236,7 +236,7 @@ function setupDeleteFeature() {
   document.addEventListener('click', deleteFrame);
 }
 
-//프레임 추출 함수
+
 function startExtractFrames(video, interval = 500){
   if (isExtracting) return; // 중복 실행 방지
   isExtracting = true;
@@ -247,16 +247,16 @@ function startExtractFrames(video, interval = 500){
       return;
     }
     const currentTime = video.currentTime;
-    // 중복 추출 방지 (0.5초 이상 차이 날 때만)
+
     if (Math.abs(currentTime - lastCapturedTime) > 0.5) {
       captureCurrentFrame(video, currentTime);
       lastCapturedTime = currentTime;
     }
 
-  }, interval); // e.g. 1000ms마다 추출 시도
+  }, interval);
 }
 
-//프레임 추출 정지 함수
+
 function stopExtractFrames(){
   if (extractIntervalId){
     clearInterval(extractIntervalId);
@@ -265,8 +265,7 @@ function stopExtractFrames(){
   }
 }
 
-//현재 프레임을 캡처하는 로직(blob + 메타 데이터 저장)
-// 현재 프레임을 캡처 + 서버에 보내서 세그 결과 추가
+
 function captureCurrentFrame(videoElement, time) {
   const canvas = document.createElement('canvas');
   canvas.width = videoElement.videoWidth;
@@ -278,23 +277,26 @@ function captureCurrentFrame(videoElement, time) {
   canvas.toBlob(async blob => {
     const frameURL = URL.createObjectURL(blob);
 
-    // ✅ 서버로 프레임 전송
+
     const formData = new FormData();
     formData.append("file", blob);
+    formData.append("mode", "video");
 
     try {
       const response = await fetch("http://127.0.0.1:8000/predict", {
         method: "POST",
         body: formData
       });
+
       if (!response.ok) throw new Error("서버 예측 실패");
       const result = await response.json();
-const overlaySrc = result.overlay;
-      // ✅ 세그 이미지(Base64)
+
+
+      const overlaySrc = result.overlay;
       const mSegSrc = result.M_mask;
       const sSegSrc = result.S_mask;
 
-      // ✅ 프레임을 DOM에 추가
+
       addFrameSet(frameURL, mSegSrc, sSegSrc);
 
       framesData.push({
@@ -303,7 +305,7 @@ const overlaySrc = result.overlay;
         blob: blob,
         S_area: result.S_area,
         M_area: result.M_area,
-         overlay: overlaySrc
+        overlay: overlaySrc
       });
     } catch (err) {
       console.error("❌ 프레임 분석 실패:", err);
@@ -312,7 +314,7 @@ const overlaySrc = result.overlay;
 }
 
 
-//전체 삭제 버튼 클릭시 모달 창 활성화 함수
+
 function setupAllDeleteModal({
   buttonSelector,
   modalSelector,
