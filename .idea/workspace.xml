@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d1e0ead3-8a70-44b7-a329-2c7410a302dc" name="변경" comment="" />
+    <list default="true" id="80bea0e0-de16-413b-9e25-4f8d63ccf228" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -13,23 +13,16 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="CSS File" />
         <option value="Python Script" />
+        <option value="CSS File" />
       </list>
     </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/binchos/biofouling_ai.git&quot;,
-    &quot;accountId&quot;: &quot;b4df3a25-8772-4f41-972c-27e6cbc49582&quot;
-  }
-}</component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/visualize_val.py" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/web_server.py" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
@@ -56,7 +49,6 @@
     &quot;Python.prepare_kowp.executor&quot;: &quot;Run&quot;,
     &quot;Python.train.executor&quot;: &quot;Run&quot;,
     &quot;Python.visualize_val.executor&quot;: &quot;Run&quot;,
-    &quot;Python.web_server.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;last_opened_file_path&quot;: &quot;C:/Users/chsobn0710/PycharmProjects/biofouling/base&quot;,
@@ -88,15 +80,15 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-1632447f56bf-JavaScript-PY-243.26053.29" />
-        <option value="bundled-python-sdk-b1dbf8ef85a6-4df51de95216-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-243.26053.29" />
+        <option value="bundled-js-predefined-d6986cc7102b-1632447f56bf-JavaScript-PY-243.25659.43" />
+        <option value="bundled-python-sdk-181015f7ab06-4df51de95216-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-243.25659.43" />
       </set>
     </attachedChunks>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="d1e0ead3-8a70-44b7-a329-2c7410a302dc" name="변경" comment="" />
+      <changelist id="80bea0e0-de16-413b-9e25-4f8d63ccf228" name="Changes" comment="" />
       <created>1757918791687</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
@@ -111,19 +103,9 @@
       <workItem from="1760592065591" duration="21143000" />
       <workItem from="1762587331375" duration="178000" />
       <workItem from="1762587528132" duration="5000000" />
-<<<<<<< HEAD
       <workItem from="1762594071728" duration="26398000" />
       <workItem from="1762929677256" duration="9812000" />
-      <workItem from="1762946433987" duration="2602000" />
-=======
-      <workItem from="1762594071728" duration="13501000" />
-      <workItem from="1762862612491" duration="3252000" />
-      <workItem from="1762865915498" duration="2288000" />
-      <workItem from="1762870603910" duration="1799000" />
-      <workItem from="1762926652733" duration="15224000" />
-      <workItem from="1762946256549" duration="697000" />
-      <workItem from="1762947082142" duration="1599000" />
->>>>>>> 2a8893a940ec443de5df7e6443c969670393d74b
+      <workItem from="1762946433800" duration="1012000" />
     </task>
     <servers />
   </component>
@@ -159,17 +141,16 @@
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/biofouling$prepare_kowp.coverage" NAME="prepare_kowp Coverage Results" MODIFIED="1758646556522" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/base" />
-    <SUITE FILE_PATH="coverage/bio_AI$web_server.coverage" NAME="web_server 커버리지 결과" MODIFIED="1762865597381" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/biofouling$distribution_liaci_train_pixel.coverage" NAME="distribution_liaci_train_pixel Coverage Results" MODIFIED="1758369083649" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/base" />
-    <SUITE FILE_PATH="coverage/biofouling$distribution_label_figshare.coverage" NAME="distribution_label_figshare Coverage Results" MODIFIED="1758392817950" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/base" />
-    <SUITE FILE_PATH="coverage/biofouling$train.coverage" NAME="train Coverage Results" MODIFIED="1758282867194" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/biofouling$figshare_make_labels.coverage" NAME="figshare_make_labels Coverage Results" MODIFIED="1758193491531" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/base" />
-    <SUITE FILE_PATH="coverage/biofouling$visualize_val.coverage" NAME="visualize_val Coverage Results" MODIFIED="1758706791676" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/biofouling$distribution_pixel_liaci.coverage" NAME="distribution_pixel_liaci Coverage Results" MODIFIED="1758285502850" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/base" />
-    <SUITE FILE_PATH="coverage/biofouling$figshare_ratio_012_check.coverage" NAME="figshare_ratio_012_check Coverage Results" MODIFIED="1758285310271" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/base" />
     <SUITE FILE_PATH="coverage/biofouling$masks_raw_check_ratio_sm.coverage" NAME="masks_raw_check_ratio_sm Coverage Results" MODIFIED="1758030722984" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/base" />
-    <SUITE FILE_PATH="coverage/biofouling$distribution_liaci_val_pixel.coverage" NAME="distribution_liaci_val_pixel Coverage Results" MODIFIED="1758368962027" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/base" />
+    <SUITE FILE_PATH="coverage/biofouling$distribution_pixel_liaci.coverage" NAME="distribution_pixel_liaci Coverage Results" MODIFIED="1758285502850" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/base" />
+    <SUITE FILE_PATH="coverage/biofouling$prepare_kowp.coverage" NAME="prepare_kowp Coverage Results" MODIFIED="1758646556522" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/base" />
+    <SUITE FILE_PATH="coverage/biofouling$figshare_make_labels.coverage" NAME="figshare_make_labels Coverage Results" MODIFIED="1758193491531" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/base" />
+    <SUITE FILE_PATH="coverage/biofouling$distribution_liaci_train_pixel.coverage" NAME="distribution_liaci_train_pixel Coverage Results" MODIFIED="1758369083649" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/base" />
     <SUITE FILE_PATH="coverage/biofouling$liaci_make_labels.coverage" NAME="liaci_make_labels Coverage Results" MODIFIED="1758735153812" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/base" />
+    <SUITE FILE_PATH="coverage/biofouling$train.coverage" NAME="train Coverage Results" MODIFIED="1758282867194" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/biofouling$distribution_label_figshare.coverage" NAME="distribution_label_figshare Coverage Results" MODIFIED="1758392817950" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/base" />
+    <SUITE FILE_PATH="coverage/biofouling$visualize_val.coverage" NAME="visualize_val Coverage Results" MODIFIED="1758706791676" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/biofouling$figshare_ratio_012_check.coverage" NAME="figshare_ratio_012_check Coverage Results" MODIFIED="1758285310271" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/base" />
+    <SUITE FILE_PATH="coverage/biofouling$distribution_liaci_val_pixel.coverage" NAME="distribution_liaci_val_pixel Coverage Results" MODIFIED="1758368962027" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/base" />
   </component>
 </project>
