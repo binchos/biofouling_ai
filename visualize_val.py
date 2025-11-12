@@ -7,7 +7,7 @@ from torchvision import transforms as T
 
 VAL_PATH = Path("/home/shared_project/data/kowp/kowp_prepared")
 
-CKPT_PATH = Path(r"C:\Users\chsobn0710\Desktop\bio\kowp_finetune_data_50_edit.pt")
+CKPT_PATH = Path(r"C:\Users\kksy0316\Desktop\finetuning\kowp_finetune_data_50_edit.pt")
 
 OUTDIR = Path("exp/vis_kowp_val_ep100")
 OUTDIR.mkdir(parents=True, exist_ok=True)

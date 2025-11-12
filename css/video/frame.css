@@ -38,7 +38,7 @@
    padding: 20px 11px 11px;
   position: relative;
   width: 405px;
-  height: 420px;   /* 🔽 세로 줄이기 (500 → 420) */
+  height: 350px;   /* 🔽 세로 줄이기 (500 → 420) */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -112,6 +112,8 @@
   font-size: 13px;
   margin-top: 4px;
   color: #444;
+  text-align: center;
+  font-weight: bold;
 }
 
 

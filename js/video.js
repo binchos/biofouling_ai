@@ -41,7 +41,7 @@ function addFrameSet(originalSrc, mSegSrc, sSegSrc) {
   mImg.classList.add('frame-seg');
   const mLabel = document.createElement('div');
   mLabel.classList.add('frame-label');
-  mLabel.textContent = 'M seg';
+  mLabel.textContent = '부착생물';
   mBox.appendChild(mImg);
   mBox.appendChild(mLabel);
 
@@ -53,7 +53,7 @@ function addFrameSet(originalSrc, mSegSrc, sSegSrc) {
   sImg.classList.add('frame-seg');
   const sLabel = document.createElement('div');
   sLabel.classList.add('frame-label');
-  sLabel.textContent = 'S seg';
+  sLabel.textContent = '구조물';
   sBox.appendChild(sImg);
   sBox.appendChild(sLabel);
 
@@ -157,11 +157,11 @@ function addFrame(blobUrl, metadata){
     <div class="frame-seg-row">
     <div class="seg-box">
         <img src="mseg/frame_m.png" class="frame-seg" alt="M seg">
-        <div class="frame-label">M seg</div>
+        <div class="frame-label">부착생물</div>
     </div>
     <div class="seg-box">
         <img src="sseg/frame$_s.png" class="frame-seg" alt="S seg">
-        <div class="frame-label">S seg</div>
+        <div class="frame-label">구조물</div>
     </div>
     </div>
   `;
