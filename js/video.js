@@ -385,8 +385,8 @@ if (frameNumberLabel) {
 
 
   const S_area = frameData?.S_area ?? 0;
-  const M_area = frameData?.M_area ?? 0;
-  const structureRatio = S_area > 0 ? Math.round((M_area / S_area) * 100) : 0;
+  const M_area = frameData?Math.min(frameData.M_area ?? 0, frameData.S_area ?? 0) : 0;
+  const structureRatio = S_area > 0 ? Math.round(Math.min((M_area / S_area),1)*100) : 0;
 
 
 const ctx = document.getElementById('modalPieChart').getContext('2d');
@@ -494,7 +494,7 @@ function setupFinalAnalyzeModal() {
 
     //  평균 계산
     const avgStructure = framesData
-      .map(f => (f.S_area > 0 ? f.M_area / f.S_area : 0))
+      .map(f => (f.S_area > 0 ? Math.min((f.M_area / f.S_area),1) : 0))
       .reduce((a, b) => a + b, 0) / framesData.length;
 
     const avgPercent = Math.round(avgStructure * 100);
@@ -544,8 +544,9 @@ function setupFinalAnalyzeModal() {
 
     const frameLabels = framesData.map((_, i) => `Frame ${i + 1}`);
     const frameRatios = framesData.map(f =>
-      f.S_area > 0 ? Math.round((f.M_area / f.S_area) * 100) : 0
+      f.S_area > 0 ? Math.round(Math.min((f.M_area / f.S_area),1)*100) : 0
     );
+
 
     lineChart = new Chart(ctxLine, {
       type: 'line',
@@ -573,7 +574,7 @@ function setupFinalAnalyzeModal() {
     },
     scales: {
       y: {
-        min: 50,
+        min: 0,
         max: 100,
         ticks: {
           stepSize: 10,
@@ -604,7 +605,6 @@ function setupFinalAnalyzeModal() {
     modal.style.display = 'none';
   });
 }
-
 
 function navigateTo(page) {
   const currentPath = window.location.pathname;
