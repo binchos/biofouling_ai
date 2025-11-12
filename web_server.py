@@ -1,4 +1,4 @@
-# app.py
+#web_server.py
 import os
 
 from fastapi import FastAPI, File, UploadFile
@@ -12,6 +12,7 @@ from model import MultiHeadNet
 from torchvision import transforms as T
 from pathlib import Path
 import matplotlib.pyplot as plt
+
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 app = FastAPI()

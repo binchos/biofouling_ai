@@ -107,15 +107,20 @@ function handleVideoUpload(event) {
 //영상 재생 함수
 function playVideo(event){
   const video = document.getElementById('preview');
-  // ✅ src가 없으면 재생 안 시도
+  const framesContainer = document.querySelector('.frames');
+  const deleteButton = document.querySelector('.delete');
+  if (deleteButton) {
+    deleteButton.classList.remove('active');
+    deleteButton.textContent = '삭제';
+  }
+  document.querySelectorAll('.frame').forEach(f => f.classList.remove('show-close'));
   if (!video || !video.currentSrc) {
     console.warn("영상이 없습니다.");
     return;
   }
-  // ✅ 재생 중이면 중복 재생 시도 방지
   if (video.paused || video.ended) {
     video.play().then(() => {
-      startExtractFrames(video);// 영상 재생 시작 시 프레임 추출 시작
+      startExtractFrames(video); // 영상 재생 시작 시 프레임 추출 시작
     }).catch(err => {
       console.warn("재생 실패:", err);
     });
@@ -123,6 +128,7 @@ function playVideo(event){
     console.log("이미 재생 중입니다.");
   }
 }
+
 
 //영상 정지 함수
 function stopVideo(event){
@@ -330,18 +336,23 @@ function setupAllDeleteModal({
     modal.style.display = 'flex';
   });
 
- confirmBtn.addEventListener('click', () => {
-
+confirmBtn.addEventListener('click', () => {
   targetContainer.innerHTML = '';
-
-
   framesData = [];
- updateFrameNumbers();
+  updateFrameNumbers();
+
+  const deleteButton = document.querySelector('.delete');
+  if (deleteButton) {
+    deleteButton.classList.remove('active');
+    deleteButton.textContent = '삭제';
+  }
+
+  document.querySelectorAll('.frame').forEach(f => f.classList.remove('show-close'));
 
   modal.style.display = 'none';
-
-  console.log("✅ 모든 프레임 및 데이터 삭제 완료");
+  console.log("✅ 모든 프레임 및 데이터 삭제 완료 (삭제 버튼 리셋)");
 });
+
 
 
   cancelBtn.addEventListener('click', () => {
